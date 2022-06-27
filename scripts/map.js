@@ -207,10 +207,9 @@ let linhas = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
 });
 
 //-----------------OCORRÊNCIAS BD-----------------//
-//LINHAS
-
 let layersToRemove = [];
 
+//-----------------LINHAS-----------------//
 //-----------------GET LINES AND SHOW ON MAP WITH DRAW CONTROL-----------------//
 function handleClickLinhas(checkbox) {
 
@@ -236,6 +235,42 @@ function handleClickLinhas(checkbox) {
             linhasbd.addData(data);
         })
         getLines.fail(function (jqXHR, textStatus, errorThrown) {
+            return errorThrown;
+        });
+    }
+    else {
+        layersToRemove.forEach(function (layer) {
+            drawnItems.removeLayer(layer);
+        });
+        layersToRemove = []
+    }
+}
+
+//-----------------GET POINTS AND SHOW ON MAP WITH DRAW CONTROL-----------------//
+function handleClickPontos(checkbox) {
+
+    if (checkbox.checked) {
+        let getPoints = $.ajax('http://localhost:3000/occurrences_point', {
+            type: 'GET',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+        });
+
+        function onEachFeatureLinesBD(feature, layer) {
+            if (feature.properties && feature.properties.name) {
+                drawnItems.addLayer(layer);
+                layersToRemove.push(layer);
+                layer.bindPopup(`<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='${feature.properties.name}'><br><br><input type='button' onclick='updatePoint(${feature.properties.id})' value='Atualizar'><input type='button' onclick='deletePoint(${feature.properties.id})' value='Eliminar'></form>`);
+            }
+        }
+
+        let pointsbd = new L.GeoJSON(null, { onEachFeature: onEachFeatureLinesBD });
+        getPoints.done(function (data) {
+            pointsbd.addData(data);
+        })
+        getPoints.fail(function (jqXHR, textStatus, errorThrown) {
             return errorThrown;
         });
     }
@@ -328,7 +363,7 @@ map.on('draw:created', (e) => {
     data = layer.toGeoJSON();
 
     if (type === 'marker') {
-        layer.bindPopup('marker!');
+        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='ponto'><br><br><input type='button' onclick='addPoint()' value='Guardar'></form>");
     }
 
     if (type === 'polygon') {
@@ -342,8 +377,9 @@ map.on('draw:created', (e) => {
     drawnItems.addLayer(layer);
 });
 
-//Checkbox Linhas
+//-----------------Checkbox Linhas/Pontos/Poligonos-----------------//
 let chkLines = document.getElementById("linhas");
+let chkPoints = document.getElementById("pontos");
 
 
 //-----------------ADD LINE TO DB-----------------//
@@ -409,7 +445,141 @@ function updateLine(id) {
     });
 }
 
+//-----------------DELETE LINE IN DB-----------------//
+function deleteLine(id) {
+    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    let feature = layer.feature = layer.feature || {};
+    feature.type = feature.type || "Feature";
+    let props = feature.properties = feature.properties || {};
 
+    let layerToDelete = layer.toGeoJSON();
+
+    props.id = id;
+
+    $.ajax('http://localhost:3000/deleteLine', {
+        type: 'POST',
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        data: JSON.stringify({ data: layerToDelete }),
+    }).done(function (response) {
+        if (response.info) {
+            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+
+            layersToRemove.forEach(function (layer) {
+                drawnItems.removeLayer(layer);
+            })
+
+            layer.closePopup();
+            layersToRemove = [];
+            handleClickLinhas(chkLines);
+        } else if (response.error) {
+            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+        }
+    });
+}
+
+
+
+//-----------------POINTS-----------------//
+//-----------------ADD POINT TO DB-----------------//
+function addPoint() {
+    let nome = document.getElementById("name").value;
+    props.name = nome;
+    $.ajax('http://localhost:3000/postPoint', {
+        type: 'POST',
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        data: JSON.stringify({ data: data }),
+    }).done(function (response) {
+        if (response.info) {
+            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+            drawnItems.removeLayer(layer);
+            handleClickPontos(chkPoints);
+        } else if (response.error) {
+            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+        }
+        layer.closePopup();
+    });
+};
+
+//-----------------UPDATE POINT IN DB-----------------//
+function updatePoint(id) {
+    let nome = document.getElementById("name").value;
+    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    let feature = layer.feature = layer.feature || {};
+    feature.type = feature.type || "Feature";
+    let props = feature.properties = feature.properties || {};
+
+    let layerToUpdate = layer.toGeoJSON();
+
+
+    props.name = nome;
+    props.id = id;
+
+
+
+    $.ajax('http://localhost:3000/updatePoint', {
+        type: 'POST',
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        data: JSON.stringify({ data: layerToUpdate }),
+    }).done(function (response) {
+        if (response.info) {
+            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+
+            layersToRemove.forEach(function (layer) {
+                drawnItems.removeLayer(layer);
+            })
+
+            layer.closePopup();
+            layersToRemove = [];
+            handleClickPontos(chkPoints);
+        } else if (response.error) {
+            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+        }
+    });
+}
+
+//-----------------DELETE POINT IN DB-----------------//
+function deletePoint(id) {
+    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    let feature = layer.feature = layer.feature || {};
+    feature.type = feature.type || "Feature";
+    let props = feature.properties = feature.properties || {};
+
+    let layerToDelete = layer.toGeoJSON();
+
+    props.id = id;
+
+    $.ajax('http://localhost:3000/deletePoint', {
+        type: 'POST',
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        data: JSON.stringify({ data: layerToDelete }),
+    }).done(function (response) {
+        if (response.info) {
+            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+
+            layersToRemove.forEach(function (layer) {
+                drawnItems.removeLayer(layer);
+            })
+
+            layer.closePopup();
+            layersToRemove = [];
+            handleClickPontos(chkPoints);
+        } else if (response.error) {
+            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+        }
+    });
+}
 
 //-----------------add scalebar in meter to the map-----------------//
 L.control.scale({ metric: true }).addTo(map);
