@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TP3 IS">
+    <meta name="author" content="Diogo Mota">
+    <link rel="icon" type="image/png" href="./images/mapa.png" />
+    <link rel="stylesheet" href="./styles/styles.css">
+    <link href="http://fonts.cdnfonts.com/css/gotham" rel="stylesheet">
+    <title>TP3 IS</title>
+
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+        integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+        crossorigin="" />
+
+    <!-- Leaflet Javascript-->
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+        integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+        crossorigin=""></script>
+
+    <!-- Grouped Layers Control -->
+    <script
+        src="https://rawgithub.com/ismyrnow/Leaflet.groupedlayercontrol/master/src/leaflet.groupedlayercontrol.js"></script>
+
+    <!-- Jquery import -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw-src.css">
+
+    <!-- Leaflet Draw JS -->
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+    <!-- popWindow css -->
+    <link rel="stylesheet" type="text/css" href="./styles/popWindow.css" />
+
+    <!-- popWindow js -->
+    <script src="./scripts/popWindow.js" type="text/javascript" charset="utf-8"></script>
+
+
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="titleFile">
+            <span style="font-family:Gotham,sans-serif;"><b>Ficheiro XML com Informação Geográfica</b></span>
+            <form method="post" action="http://localhost:3000/upload" class="fileForm">
+                <input style="font-family:Gotham,sans-serif;" type="file" id="file" name="file"
+                    accept=".kml,.kmz,.gpx, .shp, .tiff" />
+                <button style="font-family:Gotham,sans-serif;">Submeter</button>
+            </form>
+        </div>
+        <div class="titleOcurrencias">
+            <span style="font-family:Gotham,sans-serif;"><b>Ocorrências BD</b></span>
+            <div class="ocorrenciasBD">
+                <input type="checkbox" id="linhas" name="linhas" onclick='handleClickLinhas(this);'>
+                <label style="font-family:Gotham,sans-serif;" for="linhas"> Linhas </label>
+                <input type="checkbox" id="poligonos" name="poligonos" onclick='handleClickPoligonos(this);'>
+                <label style="font-family:Gotham,sans-serif;" for="poligonos"> Polígonos </label>
+                <input type="checkbox" id="pontos" name="pontos" onclick='handleClickPontos(this);'>
+                <label style="font-family:Gotham,sans-serif;" for="pontos"> Pontos </label>
+            </div>
+        </div>
+    </div>
+    <div id="map"></div>
+    <div class="footer">
+        <p style="font-family:Gotham,sans-serif;font-size:16px;">Diogo Mota Nº20778</p>
+    </div>
+
+    <script src="./scripts/map.js"></script>
+</body>
+
+</html>
