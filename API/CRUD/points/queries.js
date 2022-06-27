@@ -68,7 +68,7 @@ const deletePoints = async (request, response) => {
     try {
         const { data } = request.body;
 
-        const res = await db_config.pool.query(`DELETE FROM occurrences_point WHERE id = '${data.properties.id}'`);
+        const res = await db_config.pool.query(`DELETE FROM occurrences_point WHERE id = '${data}'`);
 
         if (res && res.rowCount > 0) {
             response.json({ info: 'Ponto eliminado com sucesso!' });

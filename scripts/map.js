@@ -246,6 +246,7 @@ function handleClickLinhas(checkbox) {
     }
 }
 
+//-----------------PONTOS-----------------//
 //-----------------GET POINTS AND SHOW ON MAP WITH DRAW CONTROL-----------------//
 function handleClickPontos(checkbox) {
 
@@ -271,6 +272,43 @@ function handleClickPontos(checkbox) {
             pointsbd.addData(data);
         })
         getPoints.fail(function (jqXHR, textStatus, errorThrown) {
+            return errorThrown;
+        });
+    }
+    else {
+        layersToRemove.forEach(function (layer) {
+            drawnItems.removeLayer(layer);
+        });
+        layersToRemove = []
+    }
+}
+
+//-----------------POLÍGONOS-----------------//
+//-----------------GET POLYGONS AND SHOW ON MAP WITH DRAW CONTROL-----------------//
+function handleClickPoligonos(checkbox) {
+
+    if (checkbox.checked) {
+        let getPolygons = $.ajax('http://localhost:3000/occurrences_polygon', {
+            type: 'GET',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+        });
+
+        function onEachFeatureLinesBD(feature, layer) {
+            if (feature.properties && feature.properties.name) {
+                drawnItems.addLayer(layer);
+                layersToRemove.push(layer);
+                layer.bindPopup(`<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='${feature.properties.name}'><br><br><input type='button' onclick='updatePolygon(${feature.properties.id})' value='Atualizar'><input type='button' onclick='deletePolygon(${feature.properties.id})' value='Eliminar'></form>`);
+            }
+        }
+
+        let polygonsbd = new L.GeoJSON(null, { onEachFeature: onEachFeatureLinesBD });
+        getPolygons.done(function (data) {
+            polygonsbd.addData(data);
+        })
+        getPolygons.fail(function (jqXHR, textStatus, errorThrown) {
             return errorThrown;
         });
     }
@@ -339,7 +377,6 @@ map.addLayer(drawnItems);
 
 let drawControl = new L.Control.Draw({
     draw: {
-        rectangle: false,
         circlemarker: false,
         circle: false,
     },
@@ -367,7 +404,11 @@ map.on('draw:created', (e) => {
     }
 
     if (type === 'polygon') {
-        layer.bindPopup('POLYGON!');
+        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='poligono'><br><br><input type='button' onclick='addPolygon()' value='Guardar'></form>");
+    }
+
+    if (type === 'rectangle') {
+        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='poligono'><br><br><input type='button' onclick='addPolygon()' value='Guardar'></form>");
     }
 
     if (type === 'polyline') {
@@ -380,6 +421,7 @@ map.on('draw:created', (e) => {
 //-----------------Checkbox Linhas/Pontos/Poligonos-----------------//
 let chkLines = document.getElementById("linhas");
 let chkPoints = document.getElementById("pontos");
+let chkPolygons = document.getElementById("poligonos");
 
 
 //-----------------ADD LINE TO DB-----------------//
@@ -448,13 +490,6 @@ function updateLine(id) {
 //-----------------DELETE LINE IN DB-----------------//
 function deleteLine(id) {
     let layer = layersToRemove.find(element => element.feature.properties.id == id);
-    let feature = layer.feature = layer.feature || {};
-    feature.type = feature.type || "Feature";
-    let props = feature.properties = feature.properties || {};
-
-    let layerToDelete = layer.toGeoJSON();
-
-    props.id = id;
 
     $.ajax('http://localhost:3000/deleteLine', {
         type: 'POST',
@@ -462,7 +497,7 @@ function deleteLine(id) {
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        data: JSON.stringify({ data: layerToDelete }),
+        data: JSON.stringify({ data: id }),
     }).done(function (response) {
         if (response.info) {
             popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
@@ -549,13 +584,6 @@ function updatePoint(id) {
 //-----------------DELETE POINT IN DB-----------------//
 function deletePoint(id) {
     let layer = layersToRemove.find(element => element.feature.properties.id == id);
-    let feature = layer.feature = layer.feature || {};
-    feature.type = feature.type || "Feature";
-    let props = feature.properties = feature.properties || {};
-
-    let layerToDelete = layer.toGeoJSON();
-
-    props.id = id;
 
     $.ajax('http://localhost:3000/deletePoint', {
         type: 'POST',
@@ -563,7 +591,7 @@ function deletePoint(id) {
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        data: JSON.stringify({ data: layerToDelete }),
+        data: JSON.stringify({ data: id }),
     }).done(function (response) {
         if (response.info) {
             popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
@@ -575,6 +603,98 @@ function deletePoint(id) {
             layer.closePopup();
             layersToRemove = [];
             handleClickPontos(chkPoints);
+        } else if (response.error) {
+            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+        }
+    });
+}
+
+//-----------------POLYGONS-----------------//
+//-----------------ADD POLYGONS TO DB-----------------//
+function addPolygon() {
+    let nome = document.getElementById("name").value;
+    props.name = nome;
+    $.ajax('http://localhost:3000/postPolygon', {
+        type: 'POST',
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        data: JSON.stringify({ data: data }),
+    }).done(function (response) {
+        if (response.info) {
+            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+            drawnItems.removeLayer(layer);
+            handleClickPoligonos(chkPolygons);
+        } else if (response.error) {
+            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+        }
+        layer.closePopup();
+    });
+};
+
+//-----------------UPDATE POLYGON IN DB-----------------//
+function updatePolygon(id) {
+    let nome = document.getElementById("name").value;
+    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    let feature = layer.feature = layer.feature || {};
+    feature.type = feature.type || "Feature";
+    let props = feature.properties = feature.properties || {};
+
+    let layerToUpdate = layer.toGeoJSON();
+
+
+    props.name = nome;
+    props.id = id;
+
+
+
+    $.ajax('http://localhost:3000/updatePolygon', {
+        type: 'POST',
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        data: JSON.stringify({ data: layerToUpdate }),
+    }).done(function (response) {
+        if (response.info) {
+            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+
+            layersToRemove.forEach(function (layer) {
+                drawnItems.removeLayer(layer);
+            })
+
+            layer.closePopup();
+            layersToRemove = [];
+            handleClickPoligonos(chkPolygons);
+        } else if (response.error) {
+            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+        }
+    });
+}
+
+//-----------------DELETE POLYGON IN DB-----------------//
+function deletePolygon(id) {
+    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+
+    $.ajax('http://localhost:3000/deletePolygon', {
+        type: 'POST',
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        data: JSON.stringify({ data: id }),
+    }).done(function (response) {
+        if (response.info) {
+            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+
+            layersToRemove.forEach(function (layer) {
+                drawnItems.removeLayer(layer);
+            })
+
+            layer.closePopup();
+            layersToRemove = [];
+            handleClickPoligonos(chkPolygons);
         } else if (response.error) {
             popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
         }

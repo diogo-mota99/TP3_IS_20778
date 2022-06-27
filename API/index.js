@@ -4,6 +4,7 @@ const { json, urlencoded } = pkg; const app = express()
 const port = 3000
 import lines from './CRUD/lines/queries.js'
 import points from './CRUD/points/queries.js'
+import polygons from './CRUD/polygons/queries.js'
 import cors from 'cors'
 
 
@@ -33,6 +34,12 @@ app.get('/occurrences_point', points.getPoints);
 app.post('/postPoint', points.postPoints);
 app.post('/updatePoint', points.updatePoints);
 app.post('/deletePoint', points.deletePoints);
+
+//POLYGONS CRUD
+app.get('/occurrences_polygon', polygons.getPolygons);
+app.post('/postPolygon', polygons.postPolygons);
+app.post('/updatePolygon', polygons.updatePolygons);
+app.post('/deletePolygon', polygons.deletePolygons);
 
 
 

@@ -72,7 +72,7 @@ const deleteLines = async (request, response) => {
   try {
     const { data } = request.body;
 
-    const res = await db_config.pool.query(`DELETE FROM occurrences_line WHERE id = '${data.properties.id}'`);
+    const res = await db_config.pool.query(`DELETE FROM occurrences_line WHERE id = '${data}'`);
 
     if (res && res.rowCount > 0) {
       response.json({ info: 'Linha eliminada com sucesso!' });
