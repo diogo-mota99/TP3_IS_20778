@@ -50,22 +50,21 @@
 
     <div class="header">
         <div class="titleFile">
-            <span style="font-family:Gotham,sans-serif;"><b>Ficheiro XML com Informação Geográfica</b></span>
+            <span><b>Ficheiro XML com Informação Geográfica</b></span>
             <form method="post" action="http://localhost:3000/upload" class="fileForm">
-                <input style="font-family:Gotham,sans-serif;" type="file" id="file" name="file"
-                    accept=".kml,.kmz,.gpx, .shp, .tiff" />
-                <button style="font-family:Gotham,sans-serif;">Submeter</button>
+                <input type="file" id="file" name="file" accept=".kml,.kmz,.gpx, .shp, .tiff" />
+                <button>Submeter</button>
             </form>
         </div>
         <div class="titleOcurrencias">
-            <span style="font-family:Gotham,sans-serif;"><b>Ocorrências BD</b></span>
+            <span><b>Ocorrências BD</b></span>
             <div class="ocorrenciasBD">
                 <input type="checkbox" id="linhas" name="linhas" onclick='handleClickLinhas(this);'>
-                <label style="font-family:Gotham,sans-serif;" for="linhas"> Linhas </label>
+                <label for="linhas"> Linhas </label>
                 <input type="checkbox" id="poligonos" name="poligonos" onclick='handleClickPoligonos(this);'>
-                <label style="font-family:Gotham,sans-serif;" for="poligonos"> Polígonos </label>
+                <label for="poligonos"> Polígonos </label>
                 <input type="checkbox" id="pontos" name="pontos" onclick='handleClickPontos(this);'>
-                <label style="font-family:Gotham,sans-serif;" for="pontos"> Pontos </label>
+                <label for="pontos"> Pontos </label>
             </div>
         </div>
     </div>

@@ -30,10 +30,10 @@ const postPolygons = async (request, response) => {
 
         let makePoints = [];
 
-            for (let j = 0; j < data.geometry.coordinates[0].length; j++) {
-                makePoints.push(data.geometry.coordinates[0][j][0] + " " + data.geometry.coordinates[0][j][1]);
-            }
-        
+        for (let j = 0; j < data.geometry.coordinates[0].length; j++) {
+            makePoints.push(data.geometry.coordinates[0][j][0] + " " + data.geometry.coordinates[0][j][1]);
+        }
+
 
         const res = await db_config.pool.query(`INSERT INTO occurrences_polygon(name, type, date, geometry) VALUES ('${data.properties.name}', 1, CURRENT_TIMESTAMP, ST_GeomFromText('POLYGON((${makePoints.toString()}))', 4326))`);
 
@@ -54,9 +54,9 @@ const updatePolygons = async (request, response) => {
 
         let makePoints = [];
 
-            for (let j = 0; j < data.geometry.coordinates[0].length; j++) {
-                makePoints.push(data.geometry.coordinates[0][j][0] + " " + data.geometry.coordinates[0][j][1]);
-            }
+        for (let j = 0; j < data.geometry.coordinates[0].length; j++) {
+            makePoints.push(data.geometry.coordinates[0][j][0] + " " + data.geometry.coordinates[0][j][1]);
+        }
 
         const res = await db_config.pool.query(`UPDATE occurrences_polygon SET name = '${data.properties.name}', date = CURRENT_TIMESTAMP, geometry = ST_GeomFromText('POLYGON((${makePoints.toString()}))', 4326) WHERE id = '${data.properties.id}'`);
 

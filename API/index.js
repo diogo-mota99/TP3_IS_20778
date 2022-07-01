@@ -1,12 +1,14 @@
 import express from 'express'
 import pkg from 'body-parser';
-const { json, urlencoded } = pkg; const app = express()
+const { json, urlencoded } = pkg;
+const app = express()
 const port = 3000
 import lines from './CRUD/lines/queries.js'
 import points from './CRUD/points/queries.js'
 import polygons from './CRUD/polygons/queries.js'
+import upload from './file_upload/upload.js'
 import cors from 'cors'
-
+import fileUpload from 'express-fileupload';
 
 app.use(json())
 app.use(
@@ -17,6 +19,7 @@ app.use(
 app.use(cors({
     origin: '*'
 }));
+app.use(fileUpload());
 
 //TEST APP
 app.get('/', (request, response) => {
@@ -40,6 +43,9 @@ app.get('/occurrences_polygon', polygons.getPolygons);
 app.post('/postPolygon', polygons.postPolygons);
 app.post('/updatePolygon', polygons.updatePolygons);
 app.post('/deletePolygon', polygons.deletePolygons);
+
+//UPLOAD FILES
+app.post('/upload', upload.upload);
 
 
 

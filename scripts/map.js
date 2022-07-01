@@ -381,7 +381,8 @@ let drawControl = new L.Control.Draw({
         circle: false,
     },
     edit: {
-        featureGroup: drawnItems
+        featureGroup: drawnItems,
+        remove: false,
     }
 });
 
@@ -400,19 +401,19 @@ map.on('draw:created', (e) => {
     data = layer.toGeoJSON();
 
     if (type === 'marker') {
-        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='ponto'><br><br><input type='button' onclick='addPoint()' value='Guardar'></form>");
+        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='ponto'><br><br><input type='button' onclick='addPoint()' value='Guardar'><input type='button' onclick='cancelLayer()' value='Cancelar'></form>");
     }
 
     if (type === 'polygon') {
-        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='poligono'><br><br><input type='button' onclick='addPolygon()' value='Guardar'></form>");
+        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='poligono'><br><br><input type='button' onclick='addPolygon()' value='Guardar'><input type='button' onclick='cancelLayer()' value='Cancelar'></form>");
     }
 
     if (type === 'rectangle') {
-        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='poligono'><br><br><input type='button' onclick='addPolygon()' value='Guardar'></form>");
+        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='poligono'><br><br><input type='button' onclick='addPolygon()' value='Guardar'><input type='button' onclick='cancelLayer()' value='Cancelar'></form>");
     }
 
     if (type === 'polyline') {
-        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='linha'><br><br><input type='button' onclick='addLine()' value='Guardar'></form>");
+        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='linha'><br><br><input type='button' onclick='addLine()' value='Guardar'><input type='button' onclick='cancelLayer()' value='Cancelar'></form>");
     }
 
     drawnItems.addLayer(layer);
@@ -699,6 +700,12 @@ function deletePolygon(id) {
             popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
         }
     });
+}
+
+//-----------------CANCEL LAYER IN DRAWER-----------------//
+function cancelLayer() {
+    drawnItems.removeLayer(layer);
+    layer.closePopup();
 }
 
 //-----------------add scalebar in meter to the map-----------------//
