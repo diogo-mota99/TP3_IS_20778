@@ -89,6 +89,7 @@ const unzip = async (filePath, response) => {
 const readXML = async (request, response) => {
 
     let points = [];
+    let changePoints = [];
 
     // pass a buffer or a path to a xml file
     await xmlReader.readXML(fs.readFileSync(request), function (err, data) {
@@ -106,59 +107,51 @@ const readXML = async (request, response) => {
                 if (results.kml.Document[0].Folder[0].Placemark[j].Point) {
                     //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
                     if (results.kml.Document[0].Folder[0].Placemark[j].ExtendedData) {
-                        for (let i = 0; i < results.kml.Document[0].Folder[0].Placemark.length; i++) {
-                            let name = results.kml.Document[0].Folder[0].Placemark[i].$.id;
-                            let coordinates = results.kml.Document[0].Folder[0].Placemark[i].Point[0].coordinates.toString();
-                            let splitCoordinates = coordinates.split(",");
-                            let latitude = splitCoordinates[0];
-                            let longitude = splitCoordinates[1];
-                            points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude });
-                        }
+                        let name = results.kml.Document[0].Folder[0].Placemark[j].$.id;
+                        let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Point[0].coordinates.toString();
+                        let splitCoordinates = coordinates.split(",");
+                        let latitude = splitCoordinates[0];
+                        let longitude = splitCoordinates[1];
+                        points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude });
+
                     } else {
                         //TESTADO COM KMZ DE https://www.datapages.com/ 
-                        for (let i = 0; i < results.kml.Document[0].Folder[0].Placemark.length; i++) {
-                            let name = results.kml.Document[0].Folder[0].Placemark[i].name.toString();
-                            let coordinates = results.kml.Document[0].Folder[0].Placemark[i].Point[0].coordinates.toString();
-                            let splitCoordinates = coordinates.split(",");
-                            let latitude = splitCoordinates[0];
-                            let longitude = splitCoordinates[1];
-                            points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude });
-                        }
+                        let name = results.kml.Document[0].Folder[0].Placemark[j].name.toString();
+                        let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Point[0].coordinates.toString();
+                        let splitCoordinates = coordinates.split(",");
+                        let latitude = splitCoordinates[0];
+                        let longitude = splitCoordinates[1];
+                        points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude });
+
                     }
                     //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
-                } else if (results.kml.Document[0].Folder[0].Placemark[j].Polygon) {
-                    for (let i = 0; i < results.kml.Document[0].Folder[0].Placemark.length; i++) {
-                        let name = results.kml.Document[0].Folder[0].Placemark[i].ExtendedData[0].SchemaData[0].SimpleData[0]._;
-                        let changePoints = [];
-                        if (results.kml.Document[0].Folder[0].Placemark[i].MultiGeometry) {
-                            for (let j = 0; j < results.kml.Document[0].Folder[0].Placemark[i].MultiGeometry[0].Polygon.length; j++) {
-                                let coordinates = results.kml.Document[0].Folder[0].Placemark[i].MultiGeometry[0].Polygon[j].outerBoundaryIs[0].LinearRing[0].coordinates[0];
-                                let splitCoordinates = coordinates.split(" ");
-                                for (let k = 0; k < splitCoordinates.length; k++) {
-                                    changePoints.push(splitCoordinates[k].replace(",", " "));
-                                }
-
-                                points.push({ "type": "multipolygon", "name": name, "makePoints": changePoints });
-                            }
-
-
-
-
-                        } else {
-                            // let coordinates = results.kml.Document[0].Folder[0].Placemark[i].Polygon[0].outerBoundaryIs[0].LinearRing[0].coordinates[0];
-                            // let splitCoordinates = coordinates.split(" ");
-
-                            // for (let i = 0; i < splitCoordinates.length; i++) {
-                            //     changePoints.push(splitCoordinates[i].replace(",", " "));
-                            // }
-
-                            // points.push({ "type": "polygon", "name": name, "makePoints": changePoints });
-
+                } else if (results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry) {
+                    for (let k = 0; k < results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry[0].Polygon.length; k++) {
+                        let name = results.kml.Document[0].Folder[0].Placemark[j].ExtendedData[0].SchemaData[0].SimpleData[0]._;
+                        let coordinates = results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry[0].Polygon[k].outerBoundaryIs[0].LinearRing[0].coordinates[0];
+                        let splitCoordinates = coordinates.split(" ");
+                        for (let l = 0; l < splitCoordinates.length; l++) {
+                            changePoints.push(splitCoordinates[k].replace(",", " "));
                         }
 
+                        points.push({ "type": "multipolygon", "name": name, "makePoints": changePoints });
+
                     }
+                } else {
+                    // let coordinates = results.kml.Document[0].Folder[0].Placemark[i].Polygon[0].outerBoundaryIs[0].LinearRing[0].coordinates[0];
+                    // let splitCoordinates = coordinates.split(" ");
+
+                    // for (let i = 0; i < splitCoordinates.length; i++) {
+                    //     changePoints.push(splitCoordinates[i].replace(",", " "));
+                    // }
+
+                    // points.push({ "type": "polygon", "name": name, "makePoints": changePoints });
+
                 }
+
+
             }
+
 
         });
 
@@ -171,7 +164,6 @@ const readXML = async (request, response) => {
 const postKml = async (request, response) => {
     let res;
     let multipolygon;
-
     //console.log(request[1]);
     //fs.writeFileSync(__dirname + '/xml/' + 'test.json', JSON.stringify(request[1].makePoints.toString()));
 
@@ -186,8 +178,8 @@ const postKml = async (request, response) => {
 
         }
     }
-    //console.log(multipolygon);
-    //fs.writeFileSync(__dirname + '/xml/' + 'test.json', JSON.stringify(multipolygon));
+    //console.log(request);
+    //fs.writeFileSync(__dirname + '/xml/' + 'test.json', JSON.stringify(request));
 
 
     return res;
