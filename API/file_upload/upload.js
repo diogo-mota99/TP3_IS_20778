@@ -8,7 +8,6 @@ import jszip from 'jszip'
 import xmlReader from 'read-xml'
 import { parseString } from 'xml2js';
 
-
 const upload = async (request, response) => {
     let file;
     let uploadPath;
@@ -89,7 +88,8 @@ const unzip = async (filePath, response) => {
 const readXML = async (request, response) => {
 
     let points = [];
-    let changePoints = [];
+    let coordPolygon = [];
+    let namePolygon = [];
 
     // pass a buffer or a path to a xml file
     await xmlReader.readXML(fs.readFileSync(request), function (err, data) {
@@ -127,31 +127,36 @@ const readXML = async (request, response) => {
                     //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
                 } else if (results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry) {
                     for (let k = 0; k < results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry[0].Polygon.length; k++) {
-                        let name = results.kml.Document[0].Folder[0].Placemark[j].ExtendedData[0].SchemaData[0].SimpleData[0]._;
+                        namePolygon.push(results.kml.Document[0].Folder[0].Placemark[j].ExtendedData[0].SchemaData[0].SimpleData[0]._);
                         let coordinates = results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry[0].Polygon[k].outerBoundaryIs[0].LinearRing[0].coordinates[0];
-                        let splitCoordinates = coordinates.split(" ");
-                        for (let l = 0; l < splitCoordinates.length; l++) {
-                            changePoints.push(splitCoordinates[k].replace(",", " "));
+                        coordPolygon.push(coordinates.split(" "));
+
+                        for (let l = 0; l < coordPolygon.length; l++) {
+                            for (let m = 0; m < coordPolygon[l].length; m++) {
+                                coordPolygon[l][m] = coordPolygon[l][m].replace(",", " ")
+                            }
                         }
-
-                        points.push({ "type": "multipolygon", "name": name, "makePoints": changePoints });
-
                     }
                 } else {
-                    // let coordinates = results.kml.Document[0].Folder[0].Placemark[i].Polygon[0].outerBoundaryIs[0].LinearRing[0].coordinates[0];
-                    // let splitCoordinates = coordinates.split(" ");
+                    namePolygon.push(results.kml.Document[0].Folder[0].Placemark[j].ExtendedData[0].SchemaData[0].SimpleData[0]._);
+                    let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Polygon[0].outerBoundaryIs[0].LinearRing[0].coordinates[0];
+                    coordPolygon.push(coordinates.split(" "));
 
-                    // for (let i = 0; i < splitCoordinates.length; i++) {
-                    //     changePoints.push(splitCoordinates[i].replace(",", " "));
-                    // }
-
-                    // points.push({ "type": "polygon", "name": name, "makePoints": changePoints });
-
+                    for (let l = 0; l < coordPolygon.length; l++) {
+                        for (let m = 0; m < coordPolygon[l].length; m++) {
+                            coordPolygon[l][m] = coordPolygon[l][m].replace(",", " ")
+                        }
+                    }
                 }
 
 
             }
 
+            if (coordPolygon.length > 0) {
+                for (let i = 0; i < coordPolygon.length; i++) {
+                    points.push({ "type": "polygon", "name": namePolygon[i], "makePoints": coordPolygon[i] });
+                }
+            }
 
         });
 
@@ -163,24 +168,14 @@ const readXML = async (request, response) => {
 
 const postKml = async (request, response) => {
     let res;
-    let multipolygon;
-    //console.log(request[1]);
-    //fs.writeFileSync(__dirname + '/xml/' + 'test.json', JSON.stringify(request[1].makePoints.toString()));
-
-    //console.log(`INSERT INTO occurrences_polygon(name, type, date, geometry) VALUES ('${request[17].name}', 1, CURRENT_TIMESTAMP, ST_GeomFromText('POLYGON((${request[17].makePoints.toString()}))', 4326))`)
 
     for (let i = 0; i < request.length; i++) {
         if (request[i].type === "point") {
             res = await db_config.pool.query(`INSERT INTO occurrences_point(name, type, date, point) VALUES ('${request[i].name}', 1, CURRENT_TIMESTAMP, ST_SetSRID(ST_MakePoint(${request[i].latitude}, ${request[i].longitude}), 4326))`);
         } else if (request[i].type === "polygon") {
             res = await db_config.pool.query(`INSERT INTO occurrences_polygon(name, type, date, geometry) VALUES ('${request[i].name}', 1, CURRENT_TIMESTAMP, ST_GeomFromText('POLYGON((${request[i].makePoints.toString()}))', 4326))`);
-        } else if (request[i].type === "multipolygon") {
-
         }
     }
-    //console.log(request);
-    //fs.writeFileSync(__dirname + '/xml/' + 'test.json', JSON.stringify(request));
-
 
     return res;
 }

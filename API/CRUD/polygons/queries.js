@@ -19,7 +19,7 @@ const getPolygons = async (request, response) => {
             response.json({ info: 'Não existem polígonos!' })
         }
     } catch (err) {
-        response.json(err)
+        response.json({ error: err.toString() })
     }
 
 }
@@ -40,11 +40,11 @@ const postPolygons = async (request, response) => {
         if (res && res.rowCount > 0) {
             response.json({ info: 'Polígono inserido com sucesso!' });
         } else {
-            response.json({ info: 'Erro ao inserir polígono!' });
+            response.json({ error: 'Erro ao inserir polígono!' });
         }
 
     } catch (err) {
-        response.json({ info: err })
+        response.json({ error: err.toString() })
     }
 }
 
@@ -63,11 +63,11 @@ const updatePolygons = async (request, response) => {
         if (res && res.rowCount > 0) {
             response.json({ info: 'Polígono atualizado com sucesso!' });
         } else {
-            response.json({ info: 'Erro ao atualizar polígono!' });
+            response.json({ error: 'Erro ao atualizar polígono!' });
         }
 
     } catch (err) {
-        response.json({ info: err })
+        response.json({ error: err.toString() })
     }
 }
 
@@ -80,12 +80,12 @@ const deletePolygons = async (request, response) => {
         if (res && res.rowCount > 0) {
             response.json({ info: 'Polígono eliminado com sucesso!' });
         } else {
-            response.json({ info: 'Erro ao eliminar polígono!' });
+            response.json({ error: 'Erro ao eliminar polígono!' });
         }
 
 
     } catch (err) {
-        response.json({ info: err })
+        response.json({ error: err.toString() })
     }
 }
 

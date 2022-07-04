@@ -19,7 +19,7 @@ const getLines = async (request, response) => {
       response.json({ info: 'Não existem linhas!' })
     }
   } catch (err) {
-    response.json(err)
+    response.json({ error: err.toString() })
   }
 
 }
@@ -38,11 +38,11 @@ const postLines = async (request, response) => {
     if (res && res.rowCount > 0) {
       response.json({ info: 'Linha inserida com sucesso!' });
     } else {
-      response.json({ info: 'Erro ao inserir linha!' });
+      response.json({ error: 'Erro ao inserir linha!' });
     }
 
   } catch (err) {
-    response.json({ info: err })
+    response.json({ error: err.toString() })
   }
 }
 
@@ -60,11 +60,11 @@ const updateLines = async (request, response) => {
     if (res && res.rowCount > 0) {
       response.json({ info: 'Linha atualizada com sucesso!' });
     } else {
-      response.json({ info: 'Erro ao atualizar linha!' });
+      response.json({ error: 'Erro ao atualizar linha!' });
     }
 
   } catch (err) {
-    response.json({ info: err })
+    response.json({ error: err.toString() })
   }
 }
 
@@ -77,12 +77,12 @@ const deleteLines = async (request, response) => {
     if (res && res.rowCount > 0) {
       response.json({ info: 'Linha eliminada com sucesso!' });
     } else {
-      response.json({ info: 'Erro ao eliminar linha!' });
+      response.json({ error: 'Erro ao eliminar linha!' });
     }
 
 
   } catch (err) {
-    response.json({ info: err })
+    response.json({ error: err.toString() })
   }
 }
 

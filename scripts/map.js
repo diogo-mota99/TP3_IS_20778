@@ -207,13 +207,16 @@ let linhas = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
 });
 
 //-----------------OCORRÊNCIAS BD-----------------//
-let layersToRemove = [];
+let linesToRemove = [];
+let polygonsToRemove = [];
+let pointsToRemove = [];
 
 //-----------------LINHAS-----------------//
 //-----------------GET LINES AND SHOW ON MAP WITH DRAW CONTROL-----------------//
 function handleClickLinhas(checkbox) {
 
     if (checkbox.checked) {
+        $('#loading').modal('show');
         let getLines = $.ajax('http://localhost:3000/occurrences_line', {
             type: 'GET',
             headers: {
@@ -225,24 +228,42 @@ function handleClickLinhas(checkbox) {
         function onEachFeatureLinesBD(feature, layer) {
             if (feature.properties && feature.properties.name) {
                 drawnItems.addLayer(layer);
-                layersToRemove.push(layer);
-                layer.bindPopup(`<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='${feature.properties.name}'><br><br><input type='button' onclick='updateLine(${feature.properties.id})' value='Atualizar'><input type='button' onclick='deleteLine(${feature.properties.id})' value='Eliminar'></form>`);
+                linesToRemove.push(layer);
+                layer.bindPopup(`<form class='form-popup' id='formLine'>
+                <label for='name' class='form-label'>Nome:</label>
+                <div class='mb-3'>
+                <input class='form-control-sm rounded-pill' type='text' id='name' name='name' value='${feature.properties.name}'>
+                </div>
+                <div class='btn-group' role='group' aria-label='Opções'>
+                <button type='button' class='btn btn-cancel rounded-pill btn-sm' onclick='deleteLine(${feature.properties.id})'><i class="fa-solid fa-trash-can"></i> Eliminar</button>
+                <button type='button' class='btn btn-add rounded-pill btn-sm ms-1' onclick='updateLine(${feature.properties.id})'><i class="fa-solid fa-floppy-disk"></i> Atualizar</button>
+                </div>
+                </form>`);
             }
         }
 
         let linhasbd = new L.GeoJSON(null, { onEachFeature: onEachFeatureLinesBD });
         getLines.done(function (data) {
-            linhasbd.addData(data);
+            if (data.info) {
+                $('#alert-text-info').text(data.info)
+                $('#info-alert').modal('show');
+                chkLines.checked = false;
+            } else if (data.error) {
+                $('#alert-text-error').text(data.error)
+                $('#error-alert').modal('show');
+                chkLines.checked = false;
+            } else {
+                linhasbd.addData(data);
+            }
+
+            $('#loading').modal('hide');
         })
-        getLines.fail(function (jqXHR, textStatus, errorThrown) {
-            return errorThrown;
-        });
     }
     else {
-        layersToRemove.forEach(function (layer) {
+        linesToRemove.forEach(function (layer) {
             drawnItems.removeLayer(layer);
         });
-        layersToRemove = []
+        linesToRemove = []
     }
 }
 
@@ -251,6 +272,8 @@ function handleClickLinhas(checkbox) {
 function handleClickPontos(checkbox) {
 
     if (checkbox.checked) {
+        $('#loading').modal('show');
+
         let getPoints = $.ajax('http://localhost:3000/occurrences_point', {
             type: 'GET',
             headers: {
@@ -259,27 +282,45 @@ function handleClickPontos(checkbox) {
             },
         });
 
-        function onEachFeatureLinesBD(feature, layer) {
+        function onEachFeaturePointsBD(feature, layer) {
             if (feature.properties && feature.properties.name) {
                 drawnItems.addLayer(layer);
-                layersToRemove.push(layer);
-                layer.bindPopup(`<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='${feature.properties.name}'><br><br><input type='button' onclick='updatePoint(${feature.properties.id})' value='Atualizar'><input type='button' onclick='deletePoint(${feature.properties.id})' value='Eliminar'></form>`);
+                pointsToRemove.push(layer);
+                layer.bindPopup(`<form class='form-popup' id='formLine'>
+                <label for='name' class='form-label'>Nome:</label>
+                <div class='mb-3'>
+                <input class='form-control-sm rounded-pill' type='text' id='name' name='name' value='${feature.properties.name}'>
+                </div>
+                <div class='btn-group' role='group' aria-label='Opções'>
+                <button type='button' class='btn btn-cancel rounded-pill btn-sm' onclick='deletePoint(${feature.properties.id})'><i class="fa-solid fa-trash-can"></i> Eliminar</button>
+                <button type='button' class='btn btn-add rounded-pill btn-sm ms-1' onclick='updatePoint(${feature.properties.id})'><i class="fa-solid fa-floppy-disk"></i> Atualizar</button>
+                </div>
+                </form>`);
             }
         }
 
-        let pointsbd = new L.GeoJSON(null, { onEachFeature: onEachFeatureLinesBD });
+        let pointsbd = new L.GeoJSON(null, { onEachFeature: onEachFeaturePointsBD });
         getPoints.done(function (data) {
-            pointsbd.addData(data);
+            if (data.info) {
+                $('#alert-text-info').text(data.info)
+                $('#info-alert').modal('show');
+                chkPoints.checked = false;
+            } else if (data.error) {
+                $('#alert-text-error').text(data.error)
+                $('#error-alert').modal('show');
+                chkPoints.checked = false;
+            } else {
+                pointsbd.addData(data);
+            }
+
+            $('#loading').modal('hide');
         })
-        getPoints.fail(function (jqXHR, textStatus, errorThrown) {
-            return errorThrown;
-        });
     }
     else {
-        layersToRemove.forEach(function (layer) {
+        pointsToRemove.forEach(function (layer) {
             drawnItems.removeLayer(layer);
         });
-        layersToRemove = []
+        pointsToRemove = []
     }
 }
 
@@ -288,6 +329,7 @@ function handleClickPontos(checkbox) {
 function handleClickPoligonos(checkbox) {
 
     if (checkbox.checked) {
+        $('#loading').modal('show');
         let getPolygons = $.ajax('http://localhost:3000/occurrences_polygon', {
             type: 'GET',
             headers: {
@@ -296,27 +338,46 @@ function handleClickPoligonos(checkbox) {
             },
         });
 
-        function onEachFeatureLinesBD(feature, layer) {
+        function onEachFeaturePolygonBD(feature, layer) {
             if (feature.properties && feature.properties.name) {
                 drawnItems.addLayer(layer);
-                layersToRemove.push(layer);
-                layer.bindPopup(`<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='${feature.properties.name}'><br><br><input type='button' onclick='updatePolygon(${feature.properties.id})' value='Atualizar'><input type='button' onclick='deletePolygon(${feature.properties.id})' value='Eliminar'></form>`);
+                polygonsToRemove.push(layer);
+                layer.bindPopup(`<form class='form-popup' id='formLine'>
+                <label for='name' class='form-label'>Nome:</label>
+                <div class='mb-3'>
+                <input class='form-control-sm rounded-pill' type='text' id='name' name='name' value='${feature.properties.name}'>
+                </div>
+                <div class='btn-group' role='group' aria-label='Opções'>
+                <button type='button' class='btn btn-cancel rounded-pill btn-sm' onclick='deletePolygon(${feature.properties.id})'><i class="fa-solid fa-trash-can"></i> Eliminar</button>
+                <button type='button' class='btn btn-add rounded-pill btn-sm ms-1' onclick='updatePolygon(${feature.properties.id})'><i class="fa-solid fa-floppy-disk"></i> Atualizar</button>
+                </div>
+                </form>`);
             }
         }
 
-        let polygonsbd = new L.GeoJSON(null, { onEachFeature: onEachFeatureLinesBD });
+        let polygonsbd = new L.GeoJSON(null, { onEachFeature: onEachFeaturePolygonBD });
         getPolygons.done(function (data) {
-            polygonsbd.addData(data);
+            if (data.info) {
+                $('#alert-text-info').text(data.info)
+                $('#info-alert').modal('show');
+                chkPolygons.checked = false;
+            } else if (data.error) {
+                $('#alert-text-error').text(data.error)
+                $('#error-alert').modal('show');
+                chkPolygons.checked = false;
+            } else {
+                polygonsbd.addData(data);
+            }
+
+            $('#loading').modal('hide');
+
         })
-        getPolygons.fail(function (jqXHR, textStatus, errorThrown) {
-            return errorThrown;
-        });
     }
     else {
-        layersToRemove.forEach(function (layer) {
+        polygonsToRemove.forEach(function (layer) {
             drawnItems.removeLayer(layer);
         });
-        layersToRemove = []
+        polygonsToRemove = []
     }
 }
 
@@ -401,19 +462,55 @@ map.on('draw:created', (e) => {
     data = layer.toGeoJSON();
 
     if (type === 'marker') {
-        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='ponto'><br><br><input type='button' onclick='addPoint()' value='Guardar'><input type='button' onclick='cancelLayer()' value='Cancelar'></form>");
+        layer.bindPopup("<form class='form-popup' id='formLine'>" +
+            "<label for='name' class='form-label'>Nome:</label>" +
+            "<div class='mb-3'>" +
+            "<input class='form-control-sm rounded-pill' type='text' id='name' name='name' value='ponto'>" +
+            "</div>" +
+            "<div class='btn-group' role='group' aria-label='Opções'>" +
+            "<button type='button' class='btn btn-cancel rounded-pill btn-sm' onclick='cancelLayer()'><i class='fa-solid fa-xmark'></i> Cancelar</button>" +
+            "<button type='button' class='btn btn-add rounded-pill btn-sm ms-1' onclick='addPoint()'><i class='fa-solid fa-plus'></i> Adicionar</button>" +
+            "</div>" +
+            "</form>");
     }
 
     if (type === 'polygon') {
-        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='poligono'><br><br><input type='button' onclick='addPolygon()' value='Guardar'><input type='button' onclick='cancelLayer()' value='Cancelar'></form>");
+        layer.bindPopup("<form class='form-popup' id='formLine'>" +
+            "<label for='name' class='form-label'>Nome:</label>" +
+            "<div class='mb-3'>" +
+            "<input class='form-control-sm rounded-pill' type='text' id='name' name='name' value='poligono'>" +
+            "</div>" +
+            "<div class='btn-group' role='group' aria-label='Opções'>" +
+            "<button type='button' class='btn btn-cancel rounded-pill btn-sm' onclick='cancelLayer()'><i class='fa-solid fa-xmark'></i> Cancelar</button>" +
+            "<button type='button' class='btn btn-add rounded-pill btn-sm ms-1' onclick='addPolygon()'><i class='fa-solid fa-plus'></i> Adicionar</button>" +
+            "</div>" +
+            "</form>");
     }
 
     if (type === 'rectangle') {
-        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='poligono'><br><br><input type='button' onclick='addPolygon()' value='Guardar'><input type='button' onclick='cancelLayer()' value='Cancelar'></form>");
+        layer.bindPopup("<form class='form-popup' id='formLine'>" +
+            "<label for='name' class='form-label'>Nome:</label>" +
+            "<div class='mb-3'>" +
+            "<input class='form-control-sm rounded-pill' type='text' id='name' name='name' value='poligono'>" +
+            "</div>" +
+            "<div class='btn-group' role='group' aria-label='Opções'>" +
+            "<button type='button' class='btn btn-cancel rounded-pill btn-sm' onclick='cancelLayer()'><i class='fa-solid fa-xmark'></i> Cancelar</button>" +
+            "<button type='button' class='btn btn-add rounded-pill btn-sm ms-1' onclick='addPolygon()'><i class='fa-solid fa-plus'></i> Adicionar</button>" +
+            "</div>" +
+            "</form>");
     }
 
     if (type === 'polyline') {
-        layer.bindPopup("<form id='formLine'>Nome:<br><input type='text' id='name' name='name' value='linha'><br><br><input type='button' onclick='addLine()' value='Guardar'><input type='button' onclick='cancelLayer()' value='Cancelar'></form>");
+        layer.bindPopup("<form class='form-popup' id='formLine'>" +
+            "<label for='name' class='form-label'>Nome:</label>" +
+            "<div class='mb-3'>" +
+            "<input class='form-control-sm rounded-pill' type='text' id='name' name='name' value='linha'>" +
+            "</div>" +
+            "<div class='btn-group' role='group' aria-label='Opções'>" +
+            "<button type='button' class='btn btn-cancel rounded-pill btn-sm' onclick='cancelLayer()'><i class='fa-solid fa-xmark'></i> Cancelar</button>" +
+            "<button type='button' class='btn btn-add rounded-pill btn-sm ms-1' onclick='addLine()'><i class='fa-solid fa-plus'></i> Adicionar</button>" +
+            "</div>" +
+            "</form>");
     }
 
     drawnItems.addLayer(layer);
@@ -427,6 +524,8 @@ let chkPolygons = document.getElementById("poligonos");
 
 //-----------------ADD LINE TO DB-----------------//
 function addLine() {
+    $('#loading').modal('show');
+
     let nome = document.getElementById("name").value;
     props.name = nome;
     $.ajax('http://localhost:3000/postLine', {
@@ -437,12 +536,16 @@ function addLine() {
         },
         data: JSON.stringify({ data: data }),
     }).done(function (response) {
+        $('#loading').modal('hide');
+
         if (response.info) {
-            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+            $('#alert-text-success').text(response.info);
+            $('#success-alert').modal('show');
             drawnItems.removeLayer(layer);
             handleClickLinhas(chkLines);
         } else if (response.error) {
-            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+            $('#alert-text-error').text(response.error);
+            $('#error-alert').modal('show');
         }
         layer.closePopup();
     });
@@ -450,8 +553,10 @@ function addLine() {
 
 //-----------------UPDATE LINE IN DB-----------------//
 function updateLine(id) {
+    $('#loading').modal('show');
+
     let nome = document.getElementById("name").value;
-    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    let layer = linesToRemove.find(element => element.feature.properties.id == id);
     let feature = layer.feature = layer.feature || {};
     feature.type = feature.type || "Feature";
     let props = feature.properties = feature.properties || {};
@@ -472,25 +577,31 @@ function updateLine(id) {
         },
         data: JSON.stringify({ data: layerToUpdate }),
     }).done(function (response) {
-        if (response.info) {
-            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+        $('#loading').modal('hide');
 
-            layersToRemove.forEach(function (layer) {
+        if (response.info) {
+            $('#alert-text-success').text(response.info);
+            $('#success-alert').modal('show');
+
+            linesToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
 
             layer.closePopup();
-            layersToRemove = [];
+            linesToRemove = [];
             handleClickLinhas(chkLines);
         } else if (response.error) {
-            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+            $('#alert-text-error').text(response.error);
+            $('#error-alert').modal('show');
         }
     });
 }
 
 //-----------------DELETE LINE IN DB-----------------//
 function deleteLine(id) {
-    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    $('#loading').modal('show');
+
+    let layer = linesToRemove.find(element => element.feature.properties.id == id);
 
     $.ajax('http://localhost:3000/deleteLine', {
         type: 'POST',
@@ -500,18 +611,22 @@ function deleteLine(id) {
         },
         data: JSON.stringify({ data: id }),
     }).done(function (response) {
-        if (response.info) {
-            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+        $('#loading').modal('hide');
 
-            layersToRemove.forEach(function (layer) {
+        if (response.info) {
+            $('#alert-text-success').text(response.info);
+            $('#success-alert').modal('show');
+
+            linesToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
 
             layer.closePopup();
-            layersToRemove = [];
+            linesToRemove = [];
             handleClickLinhas(chkLines);
         } else if (response.error) {
-            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+            $('#alert-text-error').text(response.error);
+            $('#error-alert').modal('show');
         }
     });
 }
@@ -521,6 +636,8 @@ function deleteLine(id) {
 //-----------------POINTS-----------------//
 //-----------------ADD POINT TO DB-----------------//
 function addPoint() {
+    $('#loading').modal('show');
+
     let nome = document.getElementById("name").value;
     props.name = nome;
     $.ajax('http://localhost:3000/postPoint', {
@@ -531,12 +648,16 @@ function addPoint() {
         },
         data: JSON.stringify({ data: data }),
     }).done(function (response) {
+        $('#loading').modal('hide');
+
         if (response.info) {
-            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+            $('#alert-text-success').text(response.info);
+            $('#success-alert').modal('show');
             drawnItems.removeLayer(layer);
             handleClickPontos(chkPoints);
         } else if (response.error) {
-            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+            $('#alert-text-error').text(response.error);
+            $('#error-alert').modal('show');
         }
         layer.closePopup();
     });
@@ -544,8 +665,10 @@ function addPoint() {
 
 //-----------------UPDATE POINT IN DB-----------------//
 function updatePoint(id) {
+    $('#loading').modal('show');
+
     let nome = document.getElementById("name").value;
-    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    let layer = pointsToRemove.find(element => element.feature.properties.id == id);
     let feature = layer.feature = layer.feature || {};
     feature.type = feature.type || "Feature";
     let props = feature.properties = feature.properties || {};
@@ -566,25 +689,30 @@ function updatePoint(id) {
         },
         data: JSON.stringify({ data: layerToUpdate }),
     }).done(function (response) {
-        if (response.info) {
-            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+        $('#loading').modal('hide');
 
-            layersToRemove.forEach(function (layer) {
+        if (response.info) {
+            $('#alert-text-success').text(response.info);
+            $('#success-alert').modal('show');
+            pointsToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
 
             layer.closePopup();
-            layersToRemove = [];
+            pointsToRemove = [];
             handleClickPontos(chkPoints);
         } else if (response.error) {
-            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+            $('#alert-text-error').text(response.error);
+            $('#error-alert').modal('show');
         }
     });
 }
 
 //-----------------DELETE POINT IN DB-----------------//
 function deletePoint(id) {
-    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    $('#loading').modal('show');
+
+    let layer = pointsToRemove.find(element => element.feature.properties.id == id);
 
     $.ajax('http://localhost:3000/deletePoint', {
         type: 'POST',
@@ -594,18 +722,21 @@ function deletePoint(id) {
         },
         data: JSON.stringify({ data: id }),
     }).done(function (response) {
-        if (response.info) {
-            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+        $('#loading').modal('hide');
 
-            layersToRemove.forEach(function (layer) {
+        if (response.info) {
+            $('#alert-text-success').text(response.info);
+            $('#success-alert').modal('show');
+            pointsToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
 
             layer.closePopup();
-            layersToRemove = [];
+            pointsToRemove = [];
             handleClickPontos(chkPoints);
         } else if (response.error) {
-            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+            $('#alert-text-error').text(response.error);
+            $('#error-alert').modal('show');
         }
     });
 }
@@ -613,6 +744,8 @@ function deletePoint(id) {
 //-----------------POLYGONS-----------------//
 //-----------------ADD POLYGONS TO DB-----------------//
 function addPolygon() {
+    $('#loading').modal('show');
+
     let nome = document.getElementById("name").value;
     props.name = nome;
     $.ajax('http://localhost:3000/postPolygon', {
@@ -623,12 +756,16 @@ function addPolygon() {
         },
         data: JSON.stringify({ data: data }),
     }).done(function (response) {
+        $('#loading').modal('hide');
+
         if (response.info) {
-            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+            $('#alert-text-success').text(response.info);
+            $('#success-alert').modal('show');
             drawnItems.removeLayer(layer);
             handleClickPoligonos(chkPolygons);
         } else if (response.error) {
-            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+            $('#alert-text-error').text(response.error);
+            $('#error-alert').modal('show');
         }
         layer.closePopup();
     });
@@ -636,8 +773,10 @@ function addPolygon() {
 
 //-----------------UPDATE POLYGON IN DB-----------------//
 function updatePolygon(id) {
+    $('#loading').modal('show');
+
     let nome = document.getElementById("name").value;
-    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    let layer = polygonsToRemove.find(element => element.feature.properties.id == id);
     let feature = layer.feature = layer.feature || {};
     feature.type = feature.type || "Feature";
     let props = feature.properties = feature.properties || {};
@@ -658,25 +797,30 @@ function updatePolygon(id) {
         },
         data: JSON.stringify({ data: layerToUpdate }),
     }).done(function (response) {
-        if (response.info) {
-            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+        $('#loading').modal('hide');
 
-            layersToRemove.forEach(function (layer) {
+        if (response.info) {
+            $('#alert-text-success').text(response.info);
+            $('#success-alert').modal('show');
+            polygonsToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
 
             layer.closePopup();
-            layersToRemove = [];
+            polygonsToRemove = [];
             handleClickPoligonos(chkPolygons);
         } else if (response.error) {
-            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+            $('#alert-text-error').text(response.error);
+            $('#error-alert').modal('show');
         }
     });
 }
 
 //-----------------DELETE POLYGON IN DB-----------------//
 function deletePolygon(id) {
-    let layer = layersToRemove.find(element => element.feature.properties.id == id);
+    $('#loading').modal('show');
+
+    let layer = polygonsToRemove.find(element => element.feature.properties.id == id);
 
     $.ajax('http://localhost:3000/deletePolygon', {
         type: 'POST',
@@ -686,18 +830,21 @@ function deletePolygon(id) {
         },
         data: JSON.stringify({ data: id }),
     }).done(function (response) {
-        if (response.info) {
-            popWindow.dialog(response.info, popWindow.dialog.typeEnum.success);
+        $('#loading').modal('hide');
 
-            layersToRemove.forEach(function (layer) {
+        if (response.info) {
+            $('#alert-text-success').text(response.info);
+            $('#success-alert').modal('show');
+            polygonsToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
 
             layer.closePopup();
-            layersToRemove = [];
+            polygonsToRemove = [];
             handleClickPoligonos(chkPolygons);
         } else if (response.error) {
-            popWindow.dialog(response.error, popWindow.dialog.typeEnum.error);
+            $('#alert-text-error').text(response.error);
+            $('#error-alert').modal('show');
         }
     });
 }

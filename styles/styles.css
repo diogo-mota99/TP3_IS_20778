@@ -6,24 +6,25 @@ html,
 body {
     height: 100%;
     margin: 0;
+}
+
+.body-container {
     display: flex;
     flex-direction: column;
+    height: 100%;
+    margin: 0;
 }
 
 .header {
     display: flex;
     width: 100%;
-    background-color: #D0DAEE;
+    background-color: #FDFDFF;
     padding-top: 20px;
     padding-bottom: 20px;
     color: #000;
     align-items: center;
     flex-direction: row;
     justify-content: space-between;
-}
-
-.fileForm {
-    margin-top: 10px;
 }
 
 .footer {
@@ -33,7 +34,7 @@ body {
     width: 100%;
     padding-top: 20px;
     padding-bottom: 20px;
-    background-color: #D0DAEE;
+    background-color: #FDFDFF;
     color: #000;
     align-items: center;
     flex-direction: column;
@@ -45,21 +46,75 @@ body {
     margin-top: 10px;
 }
 
-.titleOcurrencias {
+.titleOcorrencias {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-right: 20px;
-}
-
-.titleFile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-left: 20px;
 }
 
 #map {
     width: 100%;
     height: 80%;
+}
+
+.btn-upload {
+    background-color: #0a2240 !important;
+    border-color: #0a2240 !important;
+    color: #fff !important;
+}
+
+.btn-cancel {
+    background-color: #F56C6C !important;
+    border-color: #F56C6C !important;
+    color: #fff !important;
+}
+
+.btn-add {
+    background-color: #409EFF !important;
+    border-color: #409EFF !important;
+    color: #fff !important;
+}
+
+.modal-content {
+    border-radius: 0.75rem !important;
+}
+
+.form-popup {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-popup input {
+    width: 100%;
+}
+
+#loading .modal-content {
+    align-items: center !important;
+    width: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+#info-alert .modal-content {
+    color: #055160;
+    background-color: #cff4fc;
+    border-color: #b6effb;
+}
+
+#warning-alert .modal-content {
+    color: #664d03;
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+}
+
+#error-alert .modal-content {
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
+
+#success-alert .modal-content {
+    color: #0f5132;
+    background-color: #d1e7dd;
+    border-color: #badbcc;
 }

@@ -36,11 +36,11 @@ const postPoints = async (request, response) => {
         if (res && res.rowCount > 0) {
             response.json({ info: 'Ponto inserido com sucesso!' });
         } else {
-            response.json({ info: 'Erro ao inserir ponto!' });
+            response.json({ error: 'Erro ao inserir ponto!' });
         }
 
     } catch (err) {
-        response.json({ info: err })
+        response.json({ error: err.toString() })
     }
 }
 
@@ -56,11 +56,11 @@ const updatePoints = async (request, response) => {
         if (res && res.rowCount > 0) {
             response.json({ info: 'Ponto atualizado com sucesso!' });
         } else {
-            response.json({ info: 'Erro ao atualizar ponto!' });
+            response.json({ error: 'Erro ao atualizar ponto!' });
         }
 
     } catch (err) {
-        response.json({ info: err })
+        response.json({ error: err.toString() })
     }
 }
 
@@ -73,12 +73,12 @@ const deletePoints = async (request, response) => {
         if (res && res.rowCount > 0) {
             response.json({ info: 'Ponto eliminado com sucesso!' });
         } else {
-            response.json({ info: 'Erro ao eliminar ponto!' });
+            response.json({ error: 'Erro ao eliminar ponto!' });
         }
 
 
     } catch (err) {
-        response.json({ info: err })
+        response.json({ error: err.toString() })
     }
 }
 
