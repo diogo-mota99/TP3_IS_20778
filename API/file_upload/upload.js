@@ -8,61 +8,81 @@ import jszip from 'jszip'
 import xmlReader from 'read-xml'
 import { parseString } from 'xml2js';
 
+let fileExtension;
+let fileName;
+
+
 const upload = async (request, response) => {
     let file;
     let uploadPath;
-    let folder = __dirname + '/xml'
-    let fileExtension;
-    let fileName;
+    let folder;
 
-    if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder);
-    } else if (!request.files || Object.keys(request.files).length === 0) {
-        response.json({ info: "Nenhum ficheiro carregado!" });
+    if (!request.files || Object.keys(request.files).length === 0) {
+        response.json({ error: "Nenhum ficheiro carregado!" });
     } else {
 
         file = request.files.file;
         fileExtension = path.extname(file.name);
         fileName = path.basename(file.name, fileExtension);
-        uploadPath = __dirname + '/xml/' + fileName;
 
-        if (fileExtension === '.kmz') {
+        if (request.body.selectType === 'xml') {
+            folder = __dirname + '/xml';
 
-            await file.mv(uploadPath + '.zip', function (err) {
-                if (err) {
-                    response.json({ info: "Erro ao carregar ficheiro!" });
-                } else {
-                    unzip(uploadPath).then(function () {
-                        fs.unlinkSync(uploadPath + '.zip');
-                        readXML(uploadPath + '.kml').then(function (result) {
-                            postKml(result).then(function (res) {
-                                if (res && res.rowCount > 0) {
-                                    response.json({ info: 'KMZ inserido com sucesso!' });
-                                } else {
-                                    response.json({ info: 'Erro ao inserir KMZ!' });
-                                }
-                            })
-                        })
-                    })
+            if (!fs.existsSync(folder)) {
+                fs.mkdirSync(folder);
+            }
 
-                }
-            });
-        } else if (fileExtension === '.kml') {
-            await file.mv(uploadPath + fileExtension, function (err) {
-                if (err) {
-                    response.json({ info: "Erro ao carregar ficheiro!" });
-                } else {
-                    readXML(uploadPath + '.kml').then(function (result) {
-                        postKml(result).then(function (res) {
-                            if (res && res.rowCount > 0) {
-                                response.json({ info: 'KML inserido com sucesso!' });
+            uploadPath = folder + '/' + fileName;
+
+            if (fileExtension === '.kmz') {
+                await file.mv(uploadPath + '.zip', function (err) {
+                    if (err) {
+                        response.json({ error: err.toString() });
+                    } else {
+                        unzip(uploadPath).then(function (res) {
+                            fs.unlinkSync(uploadPath + '.zip');
+                            if (res === 0) {
+                                response.json({ error: "O ficheiro já existe!" })
                             } else {
-                                response.json({ info: 'Erro ao inserir KML!' });
+                                readXML(uploadPath + '.kml').then(function (result) {
+                                    postKml(result).then(function (res) {
+                                        if (res && res.rowCount > 0) {
+                                            response.json({ info: 'KMZ inserido com sucesso!' });
+                                        } else {
+                                            response.json({ error: 'Erro ao inserir KMZ!' });
+                                        }
+                                    })
+                                })
                             }
+
                         })
+
+                    }
+                });
+            } else if (fileExtension === '.kml') {
+                if (fs.existsSync(uploadPath + fileExtension)) {
+                    response.json({ error: "O ficheiro já existe!" });
+                } else {
+                    await file.mv(uploadPath + fileExtension, function (err) {
+                        if (err) {
+                            response.json({ error: err.toString() });
+                        } else {
+                            readXML(uploadPath + '.kml').then(function (result) {
+                                postKml(result).then(function (res) {
+                                    if (res && res.rowCount > 0) {
+                                        response.json({ info: 'KML inserido com sucesso!' });
+                                    } else {
+                                        response.json({ error: 'Erro ao inserir KML!' });
+                                    }
+                                })
+                            })
+                        }
                     })
                 }
-            })
+
+            } else {
+                return response.json({ error: "Formato inválido!" })
+            }
         }
     }
 
@@ -75,14 +95,23 @@ const unzip = async (filePath, response) => {
     const result = await jszipInstance.loadAsync(filecontent);
     const keys = Object.keys(result.files);
 
+    let res;
+
     for (let key of keys) {
         const item = result.files[key];
         const itemExtension = path.extname(item.name);
 
-        if (itemExtension == '.kml') {
-            fs.writeFileSync(filePath + itemExtension, Buffer.from(await item.async('arraybuffer')));
+
+        if (itemExtension === '.kml') {
+            if (fs.existsSync(filePath + itemExtension)) {
+                res = 0;
+            } else {
+                fs.writeFileSync(filePath + itemExtension, Buffer.from(await item.async('arraybuffer')));
+            }
         }
     }
+
+    return res;
 }
 
 const readXML = async (request, response) => {
@@ -94,15 +123,15 @@ const readXML = async (request, response) => {
     // pass a buffer or a path to a xml file
     await xmlReader.readXML(fs.readFileSync(request), function (err, data) {
         if (err) {
-            console.error(err);
+            console.log(err);
         }
 
         let xml = data.content;
 
         // parsing xml data
         parseString(xml, function (err, results) {
-
             for (let j = 0; j < results.kml.Document[0].Folder[0].Placemark.length; j++) {
+
                 //TESTADO COM KMZ DE https://www.datapages.com/ E KML DE https://geocatalogo.icnf.pt/catalogo.html
                 if (results.kml.Document[0].Folder[0].Placemark[j].Point) {
                     //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
@@ -112,7 +141,7 @@ const readXML = async (request, response) => {
                         let splitCoordinates = coordinates.split(",");
                         let latitude = splitCoordinates[0];
                         let longitude = splitCoordinates[1];
-                        points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude });
+                        points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude, "filename": fileName + fileExtension });
 
                     } else {
                         //TESTADO COM KMZ DE https://www.datapages.com/ 
@@ -121,7 +150,7 @@ const readXML = async (request, response) => {
                         let splitCoordinates = coordinates.split(",");
                         let latitude = splitCoordinates[0];
                         let longitude = splitCoordinates[1];
-                        points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude });
+                        points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude, "filename": fileName + fileExtension });
 
                     }
                     //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
@@ -154,14 +183,13 @@ const readXML = async (request, response) => {
 
             if (coordPolygon.length > 0) {
                 for (let i = 0; i < coordPolygon.length; i++) {
-                    points.push({ "type": "polygon", "name": namePolygon[i], "makePoints": coordPolygon[i] });
+                    points.push({ "type": "polygon", "name": namePolygon[i], "makePoints": coordPolygon[i], "filename": fileName + fileExtension });
                 }
             }
 
         });
 
     });
-
     return points;
 
 }
@@ -171,9 +199,9 @@ const postKml = async (request, response) => {
 
     for (let i = 0; i < request.length; i++) {
         if (request[i].type === "point") {
-            res = await db_config.pool.query(`INSERT INTO occurrences_point(name, type, date, point) VALUES ('${request[i].name}', 1, CURRENT_TIMESTAMP, ST_SetSRID(ST_MakePoint(${request[i].latitude}, ${request[i].longitude}), 4326))`);
+            res = await db_config.pool.query(`INSERT INTO occurrences_point(name, type, date, point, image) VALUES ('${request[i].name}', 1, CURRENT_TIMESTAMP, ST_SetSRID(ST_MakePoint(${request[i].latitude}, ${request[i].longitude}), 4326), '${request[i].filename.toString()}')`);
         } else if (request[i].type === "polygon") {
-            res = await db_config.pool.query(`INSERT INTO occurrences_polygon(name, type, date, geometry) VALUES ('${request[i].name}', 1, CURRENT_TIMESTAMP, ST_GeomFromText('POLYGON((${request[i].makePoints.toString()}))', 4326))`);
+            res = await db_config.pool.query(`INSERT INTO occurrences_polygon(name, type, date, geometry, image) VALUES ('${request[i].name}', 1, CURRENT_TIMESTAMP, ST_GeomFromText('POLYGON((${request[i].makePoints.toString()}))', 4326), '${request[i].filename.toString()}')`);
         }
     }
 

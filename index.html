@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="./images/mapa.png" />
     <link rel="stylesheet" href="./styles/styles.css">
     <link href="http://fonts.cdnfonts.com/css/gotham" rel="stylesheet">
-    <title>TP3 IS</title>
+    <title>TP3 IS - Home</title>
 
 
     <!-- Leaflet CSS -->
@@ -55,6 +55,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js"
         integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Bootstrap Table CSS-->
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.css">
+
+    <!-- Bootstrap Table JS-->
+    <script src="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.js"></script>
+
+
 </head>
 
 <body>
@@ -62,12 +70,16 @@
 
 
     <div class="body-container">
-        <div class="header">
+        <div class="header d-flex p-2">
             <button type="button" class="btn btn-upload rounded-pill ms-4" data-bs-toggle="modal"
                 data-bs-target="#fileModal">
                 <i class="fa-solid fa-file-arrow-up"></i> Adicionar Ficheiro
             </button>
-            <div class="titleOcorrencias me-4">
+            <button type="button" class="btn btn-upload rounded-pill ms-2" data-bs-toggle="modal"
+                data-bs-target="#editFileModal">
+                <i class="fa-solid fa-file-pen"></i> Gerir Ficheiros
+            </button>
+            <div class="titleOcorrencias me-4 ms-auto">
                 <span><b>Ocorrências BD</b></span>
                 <div class="ocorrenciasBD">
                     <input type="checkbox" class="form-check-input" id="linhas" name="linhas"
@@ -95,23 +107,53 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="fileModalLabel">Ficheiro com Informação Geográfica
                     </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"
+                        onclick="cleanFormFile()"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="fileForm">
+                        <div class="mb-3">
+                            <select id="selectType" onchange="changeFileFormat()" class="form-select rounded-pill"
+                                aria-label="Selecionar Tipo" id="type">
+                                <option value="xml" selected>XML</option>
+                                <option value="shapefile">Shapefile</option>
+                                <option value="raster">Raster</option>
+                            </select>
+                        </div>
+                        <input onchange="enableDisableBtn()" class="form-control rounded-pill" type="file" id="formFile"
+                            accept=".kml, .kmz">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel rounded-pill" data-bs-dismiss="modal"
+                        onclick="cleanFormFile()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                    <button class="btn btn-add rounded-pill" id="addFile" disabled type="submit" form="fileForm"><i
+                            class="fa-solid fa-plus"></i>
+                        Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Files-->
+    <div class="modal fade" id="editFileModal" tabindex="-1" aria-labelledby="editFileModalLabel" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editFileModalLabel">Ficheiros
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <select class="form-select rounded-pill" aria-label="Selecionar Tipo">
-                            <option value="xml" selected>XML</option>
-                            <option value="shapefile">Shapefile</option>
-                            <option value="raster">Raster</option>
-                        </select>
-                    </div>
-                    <input class="form-control rounded-pill" type="file" id="formFile">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-cancel rounded-pill" data-bs-dismiss="modal"><i
-                            class="fa-solid fa-xmark"></i> Cancelar</button>
-                    <button type="button" class="btn btn-add rounded-pill"><i class="fa-solid fa-plus"></i>
-                        Adicionar</button>
+                    <table data-toggle="table" data-url="data1.json" data-pagination="true" data-search="true">
+                        <thead>
+                            <tr>
+                                <th data-sortable="true" data-field="name">Nome</th>
+                                <th data-field="actions">Ações</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
             </div>
         </div>

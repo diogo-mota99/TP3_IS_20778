@@ -16,15 +16,9 @@ body {
 }
 
 .header {
-    display: flex;
-    width: 100%;
     background-color: #FDFDFF;
-    padding-top: 20px;
-    padding-bottom: 20px;
     color: #000;
     align-items: center;
-    flex-direction: row;
-    justify-content: space-between;
 }
 
 .footer {

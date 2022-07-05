@@ -217,6 +217,8 @@ function handleClickLinhas(checkbox) {
 
     if (checkbox.checked) {
         $('#loading').modal('show');
+
+
         let getLines = $.ajax('http://localhost:3000/occurrences_line', {
             type: 'GET',
             headers: {
@@ -256,6 +258,11 @@ function handleClickLinhas(checkbox) {
                 linhasbd.addData(data);
             }
 
+            $('#loading').modal('hide');
+        })
+        getLines.fail(function (xhr, textStatus, error) {
+            $('#alert-text-error').text(textStatus)
+            $('#error-alert').modal('show');
             $('#loading').modal('hide');
         })
     }
@@ -315,6 +322,11 @@ function handleClickPontos(checkbox) {
 
             $('#loading').modal('hide');
         })
+        getPoints.fail(function (xhr, textStatus, error) {
+            $('#alert-text-error').text(textStatus)
+            $('#error-alert').modal('show');
+            $('#loading').modal('hide');
+        })
     }
     else {
         pointsToRemove.forEach(function (layer) {
@@ -371,6 +383,11 @@ function handleClickPoligonos(checkbox) {
 
             $('#loading').modal('hide');
 
+        })
+        getPolygons.fail(function (xhr, textStatus, error) {
+            $('#alert-text-error').text(textStatus)
+            $('#error-alert').modal('show');
+            $('#loading').modal('hide');
         })
     }
     else {
@@ -548,6 +565,10 @@ function addLine() {
             $('#error-alert').modal('show');
         }
         layer.closePopup();
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
     });
 };
 
@@ -594,6 +615,10 @@ function updateLine(id) {
             $('#alert-text-error').text(response.error);
             $('#error-alert').modal('show');
         }
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
     });
 }
 
@@ -628,6 +653,10 @@ function deleteLine(id) {
             $('#alert-text-error').text(response.error);
             $('#error-alert').modal('show');
         }
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
     });
 }
 
@@ -660,6 +689,10 @@ function addPoint() {
             $('#error-alert').modal('show');
         }
         layer.closePopup();
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
     });
 };
 
@@ -705,6 +738,10 @@ function updatePoint(id) {
             $('#alert-text-error').text(response.error);
             $('#error-alert').modal('show');
         }
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
     });
 }
 
@@ -738,6 +775,10 @@ function deletePoint(id) {
             $('#alert-text-error').text(response.error);
             $('#error-alert').modal('show');
         }
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
     });
 }
 
@@ -755,6 +796,7 @@ function addPolygon() {
             "Content-Type": "application/json"
         },
         data: JSON.stringify({ data: data }),
+
     }).done(function (response) {
         $('#loading').modal('hide');
 
@@ -768,6 +810,10 @@ function addPolygon() {
             $('#error-alert').modal('show');
         }
         layer.closePopup();
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
     });
 };
 
@@ -813,6 +859,10 @@ function updatePolygon(id) {
             $('#alert-text-error').text(response.error);
             $('#error-alert').modal('show');
         }
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
     });
 }
 
@@ -846,6 +896,10 @@ function deletePolygon(id) {
             $('#alert-text-error').text(response.error);
             $('#error-alert').modal('show');
         }
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
     });
 }
 
@@ -859,3 +913,95 @@ function cancelLayer() {
 L.control.scale({ metric: true }).addTo(map);
 map.addControl(drawControl);
 
+
+//-----------------CHANGE FILE FORMAT ON FORMFILE-----------------//
+function changeFileFormat() {
+    let selected = document.getElementById("type").value;
+    let inputFile = document.getElementById("formFile");
+
+    if (selected === 'xml') {
+        inputFile.accept = '.kml, .kmz';
+    } else if (selected === 'shapefile') {
+        inputFile.accept = ".zip, .shp"
+    } else {
+        inputFile.accept = ".tiff";
+    }
+}
+
+//-----------------ENABLE/DISABLE ADD BUTTON ON FORMFILE-----------------//
+function enableDisableBtn() {
+    let inputFile = document.getElementById("formFile");
+    let btnAdd = document.getElementById("addFile");
+
+    if (inputFile.value === '') {
+        btnAdd.disabled = true;
+    } else {
+        btnAdd.disabled = false;
+    }
+}
+
+//-----------------CLEAN FORMFILE-----------------//
+function cleanFormFile() {
+
+    document.getElementById("addFile").disabled = true;
+    document.getElementById("fileForm").reset();
+
+}
+
+$('#fileModal').on('hide.bs.modal', function () {
+    cleanFormFile();
+})
+
+//-----------------SUBMIT FORMFILE-----------------//
+$("#fileForm").submit(function (event) {
+    console.log("EN")
+    $('#loading').modal('show');
+
+
+    let inputFile = document.getElementById("formFile");
+    let selectType = document.getElementById("selectType");
+
+
+    let formData = new FormData();
+
+    if (inputFile.value !== '') {
+
+        formData.append("file", inputFile.files[0]);
+        formData.append("selectType", selectType.value)
+
+        $.ajax('http://localhost:3000/upload', {
+            "method": "POST",
+            "timeout": 0,
+            "processData": false,
+            "mimeType": "multipart/form-data",
+            "contentType": false,
+            "data": formData
+        }).done(function (response) {
+            $('#loading').modal('hide');
+
+            let res = JSON.parse(response);
+
+            if (res.info) {
+                $('#alert-text-success').text(res.info);
+                $('#success-alert').modal('show');
+                $('#fileModal').modal('hide');
+                cleanFormFile();
+            } else if (res.error) {
+                $('#alert-text-error').text(res.error);
+                $('#error-alert').modal('show');
+            }
+        }).fail(function (xhr, textStatus, error) {
+            $('#alert-text-error').text(textStatus)
+            $('#error-alert').modal('show');
+            $('#loading').modal('hide');
+        });
+
+    } else {
+        $('#alert-text-error').text('Nenhum ficheiro selecionado!');
+        $('#error-alert').modal('show');
+        $('#loading').modal('hide');
+    }
+
+    event.preventDefault();
+
+})
