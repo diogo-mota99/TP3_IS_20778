@@ -89,26 +89,57 @@ body {
     margin-right: auto !important;
 }
 
-#info-alert .modal-content {
+#info-alert {
+    border-radius: 50rem !important;
     color: #055160;
     background-color: #cff4fc;
     border-color: #b6effb;
 }
 
-#warning-alert .modal-content {
+#warning-alert {
+    border-radius: 50rem !important;
     color: #664d03;
     background-color: #fff3cd;
     border-color: #ffecb5;
 }
 
-#error-alert .modal-content {
+#error-alert {
+    border-radius: 50rem !important;
     color: #842029;
     background-color: #f8d7da;
     border-color: #f5c2c7;
 }
 
-#success-alert .modal-content {
+#success-alert {
+    border-radius: 50rem !important;
     color: #0f5132;
     background-color: #d1e7dd;
     border-color: #badbcc;
+}
+
+#editFileModal .modal-content {
+    margin: 1.5rem !important;
+}
+
+#editFileModal .modal-dialog {
+    max-width: none !important;
+    margin: unset !important;
+}
+
+#editFileModal .search-input {
+    border-radius: 50rem !important;
+}
+
+#editFileModal .page-item.active .page-link {
+    background-color: #409EFF !important;
+    border-color: #409EFF !important;
+    color: #fff !important;
+}
+
+#editFileModal .page-link {
+    color: #409EFF !important;
+}
+
+.toast {
+    width: unset !important;
 }

@@ -47,6 +47,11 @@ app.post('/deletePolygon', polygons.deletePolygons);
 //UPLOAD FILES
 app.post('/upload', upload.upload);
 
+//GET ALL FILES IN FOLDER
+app.get('/files', upload.readAllFiles);
+
+//DELETE FILE AND DATA
+app.post('/deleteFile', upload.deleteFile);
 
 
 

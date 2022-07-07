@@ -248,11 +248,11 @@ function handleClickLinhas(checkbox) {
         getLines.done(function (data) {
             if (data.info) {
                 $('#alert-text-info').text(data.info)
-                $('#info-alert').modal('show');
+                $('#info-alert').toast('show');
                 chkLines.checked = false;
             } else if (data.error) {
                 $('#alert-text-error').text(data.error)
-                $('#error-alert').modal('show');
+                $('#error-alert').toast('show');
                 chkLines.checked = false;
             } else {
                 linhasbd.addData(data);
@@ -262,7 +262,7 @@ function handleClickLinhas(checkbox) {
         })
         getLines.fail(function (xhr, textStatus, error) {
             $('#alert-text-error').text(textStatus)
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
             $('#loading').modal('hide');
         })
     }
@@ -310,11 +310,11 @@ function handleClickPontos(checkbox) {
         getPoints.done(function (data) {
             if (data.info) {
                 $('#alert-text-info').text(data.info)
-                $('#info-alert').modal('show');
+                $('#info-alert').toast('show');
                 chkPoints.checked = false;
             } else if (data.error) {
                 $('#alert-text-error').text(data.error)
-                $('#error-alert').modal('show');
+                $('#error-alert').toast('show');
                 chkPoints.checked = false;
             } else {
                 pointsbd.addData(data);
@@ -324,7 +324,7 @@ function handleClickPontos(checkbox) {
         })
         getPoints.fail(function (xhr, textStatus, error) {
             $('#alert-text-error').text(textStatus)
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
             $('#loading').modal('hide');
         })
     }
@@ -371,11 +371,11 @@ function handleClickPoligonos(checkbox) {
         getPolygons.done(function (data) {
             if (data.info) {
                 $('#alert-text-info').text(data.info)
-                $('#info-alert').modal('show');
+                $('#info-alert').toast('show');
                 chkPolygons.checked = false;
             } else if (data.error) {
                 $('#alert-text-error').text(data.error)
-                $('#error-alert').modal('show');
+                $('#error-alert').toast('show');
                 chkPolygons.checked = false;
             } else {
                 polygonsbd.addData(data);
@@ -386,7 +386,7 @@ function handleClickPoligonos(checkbox) {
         })
         getPolygons.fail(function (xhr, textStatus, error) {
             $('#alert-text-error').text(textStatus)
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
             $('#loading').modal('hide');
         })
     }
@@ -453,7 +453,7 @@ $(".leaflet-control-layers-selector").on('click', function () {
 let drawnItems = new L.FeatureGroup();
 map.addLayer(drawnItems);
 
-let drawControl = new L.Control.Draw({
+let drawControlFull = new L.Control.Draw({
     draw: {
         circlemarker: false,
         circle: false,
@@ -462,6 +462,14 @@ let drawControl = new L.Control.Draw({
         featureGroup: drawnItems,
         remove: false,
     }
+});
+
+let drawControlEditOnly = new L.Control.Draw({
+    edit: {
+        featureGroup: drawnItems,
+        remove: false,
+    },
+    draw: false
 });
 
 //-----------------DATA FROM ADDED LAYER-----------------//
@@ -531,6 +539,8 @@ map.on('draw:created', (e) => {
     }
 
     drawnItems.addLayer(layer);
+    map.removeControl(drawControlFull);
+    map.addControl(drawControlEditOnly);
 });
 
 //-----------------Checkbox Linhas/Pontos/Poligonos-----------------//
@@ -557,17 +567,17 @@ function addLine() {
 
         if (response.info) {
             $('#alert-text-success').text(response.info);
-            $('#success-alert').modal('show');
-            drawnItems.removeLayer(layer);
+            $('#success-alert').toast('show');
+            cancelLayer();
             handleClickLinhas(chkLines);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
         }
         layer.closePopup();
     }).fail(function (xhr, textStatus, error) {
         $('#alert-text-error').text(textStatus)
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
 };
@@ -602,7 +612,7 @@ function updateLine(id) {
 
         if (response.info) {
             $('#alert-text-success').text(response.info);
-            $('#success-alert').modal('show');
+            $('#success-alert').toast('show');
 
             linesToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
@@ -613,11 +623,11 @@ function updateLine(id) {
             handleClickLinhas(chkLines);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
         }
     }).fail(function (xhr, textStatus, error) {
         $('#alert-text-error').text(textStatus)
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
 }
@@ -640,7 +650,7 @@ function deleteLine(id) {
 
         if (response.info) {
             $('#alert-text-success').text(response.info);
-            $('#success-alert').modal('show');
+            $('#success-alert').toast('show');
 
             linesToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
@@ -651,11 +661,11 @@ function deleteLine(id) {
             handleClickLinhas(chkLines);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
         }
     }).fail(function (xhr, textStatus, error) {
         $('#alert-text-error').text(textStatus)
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
 }
@@ -681,17 +691,17 @@ function addPoint() {
 
         if (response.info) {
             $('#alert-text-success').text(response.info);
-            $('#success-alert').modal('show');
-            drawnItems.removeLayer(layer);
+            $('#success-alert').toast('show');
+            cancelLayer();
             handleClickPontos(chkPoints);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
         }
         layer.closePopup();
     }).fail(function (xhr, textStatus, error) {
         $('#alert-text-error').text(textStatus)
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
 };
@@ -726,7 +736,7 @@ function updatePoint(id) {
 
         if (response.info) {
             $('#alert-text-success').text(response.info);
-            $('#success-alert').modal('show');
+            $('#success-alert').toast('show');
             pointsToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
@@ -736,11 +746,11 @@ function updatePoint(id) {
             handleClickPontos(chkPoints);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
         }
     }).fail(function (xhr, textStatus, error) {
         $('#alert-text-error').text(textStatus)
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
 }
@@ -763,7 +773,7 @@ function deletePoint(id) {
 
         if (response.info) {
             $('#alert-text-success').text(response.info);
-            $('#success-alert').modal('show');
+            $('#success-alert').toast('show');
             pointsToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
@@ -773,11 +783,11 @@ function deletePoint(id) {
             handleClickPontos(chkPoints);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
         }
     }).fail(function (xhr, textStatus, error) {
         $('#alert-text-error').text(textStatus)
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
 }
@@ -802,17 +812,17 @@ function addPolygon() {
 
         if (response.info) {
             $('#alert-text-success').text(response.info);
-            $('#success-alert').modal('show');
-            drawnItems.removeLayer(layer);
+            $('#success-alert').toast('show');
+            cancelLayer();
             handleClickPoligonos(chkPolygons);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
         }
         layer.closePopup();
     }).fail(function (xhr, textStatus, error) {
         $('#alert-text-error').text(textStatus)
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
 };
@@ -847,7 +857,7 @@ function updatePolygon(id) {
 
         if (response.info) {
             $('#alert-text-success').text(response.info);
-            $('#success-alert').modal('show');
+            $('#success-alert').toast('show');
             polygonsToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
@@ -857,11 +867,11 @@ function updatePolygon(id) {
             handleClickPoligonos(chkPolygons);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
         }
     }).fail(function (xhr, textStatus, error) {
         $('#alert-text-error').text(textStatus)
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
 }
@@ -884,7 +894,7 @@ function deletePolygon(id) {
 
         if (response.info) {
             $('#alert-text-success').text(response.info);
-            $('#success-alert').modal('show');
+            $('#success-alert').toast('show');
             polygonsToRemove.forEach(function (layer) {
                 drawnItems.removeLayer(layer);
             })
@@ -894,11 +904,11 @@ function deletePolygon(id) {
             handleClickPoligonos(chkPolygons);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
         }
     }).fail(function (xhr, textStatus, error) {
         $('#alert-text-error').text(textStatus)
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
 }
@@ -907,11 +917,13 @@ function deletePolygon(id) {
 function cancelLayer() {
     drawnItems.removeLayer(layer);
     layer.closePopup();
+    map.removeControl(drawControlEditOnly);
+    map.addControl(drawControlFull);
 }
 
 //-----------------add scalebar in meter to the map-----------------//
 L.control.scale({ metric: true }).addTo(map);
-map.addControl(drawControl);
+map.addControl(drawControlFull);
 
 
 //-----------------CHANGE FILE FORMAT ON FORMFILE-----------------//
@@ -954,7 +966,6 @@ $('#fileModal').on('hide.bs.modal', function () {
 
 //-----------------SUBMIT FORMFILE-----------------//
 $("#fileForm").submit(function (event) {
-    console.log("EN")
     $('#loading').modal('show');
 
 
@@ -983,25 +994,94 @@ $("#fileForm").submit(function (event) {
 
             if (res.info) {
                 $('#alert-text-success').text(res.info);
-                $('#success-alert').modal('show');
+                $('#success-alert').toast('show');
                 $('#fileModal').modal('hide');
                 cleanFormFile();
             } else if (res.error) {
                 $('#alert-text-error').text(res.error);
-                $('#error-alert').modal('show');
+                $('#error-alert').toast('show');
             }
         }).fail(function (xhr, textStatus, error) {
             $('#alert-text-error').text(textStatus)
-            $('#error-alert').modal('show');
+            $('#error-alert').toast('show');
             $('#loading').modal('hide');
         });
 
     } else {
         $('#alert-text-error').text('Nenhum ficheiro selecionado!');
-        $('#error-alert').modal('show');
+        $('#error-alert').toast('show');
         $('#loading').modal('hide');
     }
 
     event.preventDefault();
 
 })
+
+//-----------------BOOTSTRAP TABLE-----------------//
+function getAllFiles() {
+    $('#loading').modal('show');
+
+    $.ajax('http://localhost:3000/files', {
+        type: 'GET',
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+    }).done(function (response) {
+        $('#loading').modal('hide');
+        $('#filesTable').bootstrapTable('load', JSON.parse(response));
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#error-alert').toast('show');
+        $('#loading').modal('hide');
+    });
+}
+
+$('#editFileModal').on('show.bs.modal', function () {
+    getAllFiles();
+});
+
+let fileToDelete;
+
+function tableActions(value, row, index) {
+    fileToDelete = row.name;
+    return `<button type='button' class='btn btn-cancel rounded-pill btn-sm' data-bs-toggle="modal"
+    data-bs-target="#deleteFileModal"><i class="fa-solid fa-trash-can"></i> Eliminar</button>`
+}
+
+function cancelDeleteFile() {
+    $('#editFileModal').modal('show');
+}
+
+function deleteFile() {
+    $('#loading').modal('show');
+
+    $.ajax('http://localhost:3000/deleteFile', {
+        type: 'POST',
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        data: JSON.stringify({ data: fileToDelete }),
+    }).done(function (response) {
+        $('#loading').modal('hide');
+
+        if (response.info) {
+            $('#alert-text-success').text(response.info);
+            $('#deleteFileModal').modal('hide');
+            $('#editFileModal').modal('show');
+            $('#success-alert').toast('show');
+        } else if (response.error) {
+            $('#alert-text-error').text(response.error);
+            $('#deleteFileModal').modal('hide');
+            $('#editFileModal').modal('show');
+            $('#error-alert').toast('show');
+        }
+    }).fail(function (xhr, textStatus, error) {
+        $('#alert-text-error').text(textStatus)
+        $('#deleteFileModal').modal('hide');
+        $('#editFileModal').modal('show');
+        $('#error-alert').toast('show');
+        $('#loading').modal('hide');
+    });
+}

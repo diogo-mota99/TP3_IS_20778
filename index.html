@@ -62,6 +62,10 @@
     <!-- Bootstrap Table JS-->
     <script src="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.js"></script>
 
+    <!-- Bootstrap Table Locale-->
+    <script src="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table-locale-all.min.js"></script>
+
+
 
 </head>
 
@@ -76,7 +80,7 @@
                 <i class="fa-solid fa-file-arrow-up"></i> Adicionar Ficheiro
             </button>
             <button type="button" class="btn btn-upload rounded-pill ms-2" data-bs-toggle="modal"
-                data-bs-target="#editFileModal">
+                data-bs-target="#editFileModal" onclick="getAllFiles()">
                 <i class="fa-solid fa-file-pen"></i> Gerir Ficheiros
             </button>
             <div class="titleOcorrencias me-4 ms-auto">
@@ -136,8 +140,7 @@
     </div>
 
     <!-- Modal Edit Files-->
-    <div class="modal fade" id="editFileModal" tabindex="-1" aria-labelledby="editFileModalLabel" aria-hidden="true"
-        data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="editFileModal" tabindex="-1" aria-labelledby="editFileModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -146,14 +149,41 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body">
-                    <table data-toggle="table" data-url="data1.json" data-pagination="true" data-search="true">
+                    <table data-toggle="table" id="filesTable" data-pagination="true" data-search="true"
+                        data-locale="pt-PT" data-page-list="" data-page-size="5">
                         <thead>
                             <tr>
                                 <th data-sortable="true" data-field="name">Nome</th>
-                                <th data-field="actions">Ações</th>
+                                <th data-formatter="tableActions" data-field="actions">Ações</th>
                             </tr>
                         </thead>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Delete Files-->
+    <div class="modal fade" id="deleteFileModal" tabindex="-1" aria-labelledby="deleteFileModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    &nbsp;
+                    <h5 class="modal-title" id="deleteFileModalLabel">Aviso!
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ao eliminar o ficheiro irá eliminar todos os dados associados!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel rounded-pill" data-bs-dismiss="modal"
+                        onclick="cancelDeleteFile()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                    <button class="btn btn-add rounded-pill" id="deleteFile" onclick="deleteFile()"><i
+                            class="fa-solid fa-check"></i>
+                        Confirmar</button>
                 </div>
             </div>
         </div>
@@ -173,59 +203,56 @@
         </div>
     </div>
 
-    <!-- Success Alert -->
-    <div id="success-alert" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body alert-dismissible">
+    <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060">
+
+        <!-- Success Alert -->
+        <div id="success-alert" class="toast" role="alert" aria-live="assertive" aria-atomic="true"
+            data-bs-autohide="true" data-bs-delay="3000">
+            <div class="d-flex">
+                <div class="toast-body">
                     <i class="fa-solid fa-circle-check"></i>
                     <strong class="mx-2">Sucesso!</strong> <span id="alert-text-success"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
-    </div>
 
-    <!-- Error Alert -->
-    <div id="error-alert" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body alert-dismissible">
+        <!-- Error Alert -->
+        <div id="error-alert" class="toast" role="alert" aria-live="assertive" aria-atomic="true"
+            data-bs-autohide="true" data-bs-delay="3000">
+            <div class="d-flex">
+                <div class="toast-body">
                     <i class="fa-solid fa-circle-xmark"></i>
                     <strong class="mx-2">Erro!</strong> <span id="alert-text-error"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
-    </div>
 
-    <!-- Warning Alert -->
-    <div id="warning-alert" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body alert-dismissible">
+        <!-- Warning Alert -->
+        <div id="warning-alert" class="toast" role="alert" aria-live="assertive" aria-atomic="true"
+            data-bs-autohide="true" data-bs-delay="3000">
+            <div class="d-flex">
+                <div class="toast-body">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <strong class="mx-2">Aviso!</strong> <span id="alert-text-warning"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
-    </div>
 
-
-    <!-- Info Alert -->
-    <div id="info-alert" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body alert-dismissible">
+        <!-- Info Alert -->
+        <div id="info-alert" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true"
+            data-bs-delay="3000">
+            <div class="d-flex">
+                <div class="toast-body">
                     <i class="fa-solid fa-circle-info"></i>
                     <strong class="mx-2">Info!</strong> <span id="alert-text-info"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     </div>
-
 
 
 

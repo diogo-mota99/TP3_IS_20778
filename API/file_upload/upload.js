@@ -10,11 +10,11 @@ import { parseString } from 'xml2js';
 
 let fileExtension;
 let fileName;
+let uploadPath;
 
 
 const upload = async (request, response) => {
     let file;
-    let uploadPath;
     let folder;
 
     if (!request.files || Object.keys(request.files).length === 0) {
@@ -48,6 +48,8 @@ const upload = async (request, response) => {
                                     postKml(result).then(function (res) {
                                         if (res && res.rowCount > 0) {
                                             response.json({ info: 'KMZ inserido com sucesso!' });
+                                        } else if (res === 0) {
+                                            response.json({ error: "Ficheiro com estrututra incorreta!" })
                                         } else {
                                             response.json({ error: 'Erro ao inserir KMZ!' });
                                         }
@@ -71,6 +73,8 @@ const upload = async (request, response) => {
                                 postKml(result).then(function (res) {
                                     if (res && res.rowCount > 0) {
                                         response.json({ info: 'KML inserido com sucesso!' });
+                                    } else if (res === 0) {
+                                        response.json({ error: "Ficheiro com estrututra incorreta!" })
                                     } else {
                                         response.json({ error: 'Erro ao inserir KML!' });
                                     }
@@ -82,6 +86,41 @@ const upload = async (request, response) => {
 
             } else {
                 return response.json({ error: "Formato inválido!" })
+            }
+        } else if (request.body.selectType === 'shapefile') {
+            if (!fs.existsSync(folder)) {
+                fs.mkdirSync(folder);
+            }
+
+            uploadPath = folder + '/' + fileName;
+
+            if (fileExtension === '.zip') {
+                await file.mv(uploadPath + '.zip', function (err) {
+                    if (err) {
+                        response.json({ error: err.toString() });
+                    } else {
+                        unzip(uploadPath).then(function (res) {
+                            fs.unlinkSync(uploadPath + '.zip');
+                            if (res === 0) {
+                                response.json({ error: "O ficheiro já existe!" })
+                            } else {
+                                // readXML(uploadPath + '.kml').then(function (result) {
+                                //     postKml(result).then(function (res) {
+                                //         if (res && res.rowCount > 0) {
+                                //             response.json({ info: 'KMZ inserido com sucesso!' });
+                                //         } else if (res === 0) {
+                                //             response.json({ error: "Ficheiro com estrututra incorreta!" })
+                                //         } else {
+                                //             response.json({ error: 'Erro ao inserir KMZ!' });
+                                //         }
+                                //     })
+                                // })
+                            }
+
+                        })
+
+                    }
+                });
             }
         }
     }
@@ -103,6 +142,12 @@ const unzip = async (filePath, response) => {
 
 
         if (itemExtension === '.kml') {
+            if (fs.existsSync(filePath + itemExtension)) {
+                res = 0;
+            } else {
+                fs.writeFileSync(filePath + itemExtension, Buffer.from(await item.async('arraybuffer')));
+            }
+        } else if (itemExtension === '.shp') {
             if (fs.existsSync(filePath + itemExtension)) {
                 res = 0;
             } else {
@@ -130,34 +175,46 @@ const readXML = async (request, response) => {
 
         // parsing xml data
         parseString(xml, function (err, results) {
-            for (let j = 0; j < results.kml.Document[0].Folder[0].Placemark.length; j++) {
+            if (results.kml.Document) {
+                for (let j = 0; j < results.kml.Document[0].Folder[0].Placemark.length; j++) {
 
-                //TESTADO COM KMZ DE https://www.datapages.com/ E KML DE https://geocatalogo.icnf.pt/catalogo.html
-                if (results.kml.Document[0].Folder[0].Placemark[j].Point) {
-                    //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
-                    if (results.kml.Document[0].Folder[0].Placemark[j].ExtendedData) {
-                        let name = results.kml.Document[0].Folder[0].Placemark[j].$.id;
-                        let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Point[0].coordinates.toString();
-                        let splitCoordinates = coordinates.split(",");
-                        let latitude = splitCoordinates[0];
-                        let longitude = splitCoordinates[1];
-                        points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude, "filename": fileName + fileExtension });
+                    //TESTADO COM KMZ DE https://www.datapages.com/ E KML DE https://geocatalogo.icnf.pt/catalogo.html
+                    if (results.kml.Document[0].Folder[0].Placemark[j].Point) {
+                        //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
+                        if (results.kml.Document[0].Folder[0].Placemark[j].ExtendedData) {
+                            let name = results.kml.Document[0].Folder[0].Placemark[j].$.id;
+                            let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Point[0].coordinates.toString();
+                            let splitCoordinates = coordinates.split(",");
+                            let latitude = splitCoordinates[0];
+                            let longitude = splitCoordinates[1];
+                            points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude, "filename": fileName + '.kml' });
 
+                        } else {
+                            //TESTADO COM KMZ DE https://www.datapages.com/ 
+                            let name = results.kml.Document[0].Folder[0].Placemark[j].name.toString();
+                            let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Point[0].coordinates.toString();
+                            let splitCoordinates = coordinates.split(",");
+                            let latitude = splitCoordinates[0];
+                            let longitude = splitCoordinates[1];
+                            points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude, "filename": fileName + '.kml' });
+
+                        }
+                        //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
+                    } else if (results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry) {
+                        for (let k = 0; k < results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry[0].Polygon.length; k++) {
+                            namePolygon.push(results.kml.Document[0].Folder[0].Placemark[j].ExtendedData[0].SchemaData[0].SimpleData[0]._);
+                            let coordinates = results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry[0].Polygon[k].outerBoundaryIs[0].LinearRing[0].coordinates[0];
+                            coordPolygon.push(coordinates.split(" "));
+
+                            for (let l = 0; l < coordPolygon.length; l++) {
+                                for (let m = 0; m < coordPolygon[l].length; m++) {
+                                    coordPolygon[l][m] = coordPolygon[l][m].replace(",", " ")
+                                }
+                            }
+                        }
                     } else {
-                        //TESTADO COM KMZ DE https://www.datapages.com/ 
-                        let name = results.kml.Document[0].Folder[0].Placemark[j].name.toString();
-                        let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Point[0].coordinates.toString();
-                        let splitCoordinates = coordinates.split(",");
-                        let latitude = splitCoordinates[0];
-                        let longitude = splitCoordinates[1];
-                        points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude, "filename": fileName + fileExtension });
-
-                    }
-                    //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
-                } else if (results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry) {
-                    for (let k = 0; k < results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry[0].Polygon.length; k++) {
                         namePolygon.push(results.kml.Document[0].Folder[0].Placemark[j].ExtendedData[0].SchemaData[0].SimpleData[0]._);
-                        let coordinates = results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry[0].Polygon[k].outerBoundaryIs[0].LinearRing[0].coordinates[0];
+                        let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Polygon[0].outerBoundaryIs[0].LinearRing[0].coordinates[0];
                         coordPolygon.push(coordinates.split(" "));
 
                         for (let l = 0; l < coordPolygon.length; l++) {
@@ -166,19 +223,12 @@ const readXML = async (request, response) => {
                             }
                         }
                     }
-                } else {
-                    namePolygon.push(results.kml.Document[0].Folder[0].Placemark[j].ExtendedData[0].SchemaData[0].SimpleData[0]._);
-                    let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Polygon[0].outerBoundaryIs[0].LinearRing[0].coordinates[0];
-                    coordPolygon.push(coordinates.split(" "));
 
-                    for (let l = 0; l < coordPolygon.length; l++) {
-                        for (let m = 0; m < coordPolygon[l].length; m++) {
-                            coordPolygon[l][m] = coordPolygon[l][m].replace(",", " ")
-                        }
-                    }
+
                 }
-
-
+            } else {
+                fs.unlinkSync(uploadPath + '.kml');
+                points.push({ "error": "Ficheiro com estrututra incorreta!" })
             }
 
             if (coordPolygon.length > 0) {
@@ -202,12 +252,91 @@ const postKml = async (request, response) => {
             res = await db_config.pool.query(`INSERT INTO occurrences_point(name, type, date, point, image) VALUES ('${request[i].name}', 1, CURRENT_TIMESTAMP, ST_SetSRID(ST_MakePoint(${request[i].latitude}, ${request[i].longitude}), 4326), '${request[i].filename.toString()}')`);
         } else if (request[i].type === "polygon") {
             res = await db_config.pool.query(`INSERT INTO occurrences_polygon(name, type, date, geometry, image) VALUES ('${request[i].name}', 1, CURRENT_TIMESTAMP, ST_GeomFromText('POLYGON((${request[i].makePoints.toString()}))', 4326), '${request[i].filename.toString()}')`);
+        } else if (request[i].error) {
+            res = 0;
         }
     }
 
     return res;
 }
 
+const readAllFiles = async (request, response) => {
+
+    let folderXML = __dirname + '/xml';
+    let folderSHP = __dirname + '/shp';
+    let folderTIFF = __dirname + '/tiff';
+
+    let files = [];
+
+    if (fs.existsSync(folderXML)) {
+        fs.readdirSync(folderXML).forEach(file => {
+            files.push({ name: file });
+        });
+    } else if (fs.existsSync(folderSHP)) {
+        fs.readdirSync(folderSHP).forEach(file => {
+            files.push({ name: file });
+        });
+    } else if (fs.existsSync(folderTIFF)) {
+        fs.readdirSync(folderTIFF).forEach(file => {
+            files.push({ name: file });
+        });
+    }
+
+    response.json(JSON.stringify(files))
+
+}
+
+
+const deleteFile = async (request, response) => {
+    try {
+        const { data } = request.body;
+
+        const res = await db_config.pool.query(`DELETE FROM occurrences_polygon WHERE image='${data}'`);
+        const res1 = await db_config.pool.query(`DELETE FROM occurrences_line WHERE image='${data}'`);
+        const res2 = await db_config.pool.query(`DELETE FROM occurrences_point WHERE image='${data}'`);
+
+        if (res && res.rowCount > 0 || res1 && res1.rowCount > 0 || res2 && res2.rowCount > 0) {
+            fileToDelete(data);
+            response.json({ info: 'Dados eliminados com sucesso!' });
+        } else {
+            response.json({ error: 'Erro ao eliminar dados!' });
+        }
+
+    } catch (err) {
+        response.json({ error: err.toString() })
+    }
+}
+
+const fileToDelete = (request, response) => {
+
+    let folderXML = __dirname + '/xml';
+    let folderSHP = __dirname + '/shp';
+    let folderTIFF = __dirname + '/tiff';
+
+
+    if (fs.existsSync(folderXML)) {
+        fs.readdirSync(folderXML).forEach(file => {
+            if (file === request) {
+                fs.unlinkSync(folderXML + '/' + file);
+            }
+        });
+    } else if (fs.existsSync(folderSHP)) {
+        fs.readdirSync(folderSHP).forEach(file => {
+            if (file === request) {
+                fs.unlinkSync(folderSHP + '/' + file);
+            }
+        });
+    } else if (fs.existsSync(folderTIFF)) {
+        fs.readdirSync(folderTIFF).forEach(file => {
+            if (file === request) {
+                fs.unlinkSync(folderTIFF + '/' + file);
+            }
+        });
+    }
+}
+
 export default {
     upload,
+    readAllFiles,
+    deleteFile
 }
