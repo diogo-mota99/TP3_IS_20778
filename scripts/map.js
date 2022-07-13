@@ -1,7 +1,6 @@
 //-----------------BASE MAPS-----------------//
-let openStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+var Esri_WorldStreetMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
 });
 
 let satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.jpg')
@@ -11,7 +10,7 @@ let transportMap = L.tileLayer('https://tile.thunderforest.com/transport/{z}/{x}
 let railwaysMap = L.tileLayer('https://tile.thunderforest.com/pioneer/{z}/{x}/{y}.png?apikey=70c938376d9f4d57b5f7f7d545252b77');
 
 let baseMaps = {
-    "OpenStreet Map": openStreetMap,
+    "Esri WorldStreetMap": Esri_WorldStreetMap,
     "Satellite Map": satelliteMap,
     "Transport Map": transportMap,
     "Railways Map": railwaysMap,
@@ -433,7 +432,7 @@ let overlayMaps = {
 };
 
 //-----------------MAP OPTIONS-----------------//
-let map = L.map('map', { center: [39.557191, -7.8536599], zoom: 7, layers: [openStreetMap] });
+let map = L.map('map', { center: [39.557191, -7.8536599], zoom: 7, layers: [Esri_WorldStreetMap] });
 let layerControl = L.control.groupedLayers(baseMaps, overlayMaps).addTo(map);
 
 
@@ -928,13 +927,13 @@ map.addControl(drawControlFull);
 
 //-----------------CHANGE FILE FORMAT ON FORMFILE-----------------//
 function changeFileFormat() {
-    let selected = document.getElementById("type").value;
+    let selected = document.getElementById("selectType").value;
     let inputFile = document.getElementById("formFile");
 
     if (selected === 'xml') {
         inputFile.accept = '.kml, .kmz';
     } else if (selected === 'shapefile') {
-        inputFile.accept = ".zip, .shp"
+        inputFile.accept = ".zip"
     } else {
         inputFile.accept = ".tiff";
     }
@@ -957,6 +956,7 @@ function cleanFormFile() {
 
     document.getElementById("addFile").disabled = true;
     document.getElementById("fileForm").reset();
+    document.getElementById("formFile").accept = '.kml, .kmz';
 
 }
 
