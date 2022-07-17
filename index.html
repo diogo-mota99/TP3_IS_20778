@@ -80,7 +80,7 @@
                 <i class="fa-solid fa-file-arrow-up"></i> Adicionar Ficheiro
             </button>
             <button type="button" class="btn btn-upload rounded-pill ms-2" data-bs-toggle="modal"
-                data-bs-target="#editFileModal" onclick="getAllFiles()">
+                data-bs-target="#editFileModal">
                 <i class="fa-solid fa-file-pen"></i> Gerir Ficheiros
             </button>
             <div class="titleOcorrencias me-4 ms-auto">
@@ -121,7 +121,6 @@
                                 aria-label="Selecionar Tipo" id="type">
                                 <option value="xml" selected>XML</option>
                                 <option value="shapefile">Shapefile</option>
-                                <option value="raster">Raster</option>
                             </select>
                         </div>
                         <input onchange="enableDisableBtn()" class="form-control rounded-pill" type="file" id="formFile"

@@ -934,8 +934,6 @@ function changeFileFormat() {
         inputFile.accept = '.kml, .kmz';
     } else if (selected === 'shapefile') {
         inputFile.accept = ".zip"
-    } else {
-        inputFile.accept = ".tiff";
     }
 }
 
@@ -1018,7 +1016,7 @@ $("#fileForm").submit(function (event) {
 })
 
 //-----------------BOOTSTRAP TABLE-----------------//
-function getAllFiles() {
+$('#editFileModal').on('show.bs.modal', function () {
     $('#loading').modal('show');
 
     $.ajax('http://localhost:3000/files', {
@@ -1035,10 +1033,6 @@ function getAllFiles() {
         $('#error-alert').toast('show');
         $('#loading').modal('hide');
     });
-}
-
-$('#editFileModal').on('show.bs.modal', function () {
-    getAllFiles();
 });
 
 let fileToDelete;
@@ -1071,6 +1065,25 @@ function deleteFile() {
             $('#deleteFileModal').modal('hide');
             $('#editFileModal').modal('show');
             $('#success-alert').toast('show');
+
+
+            polygonsToRemove.forEach(function (layer) {
+                drawnItems.removeLayer(layer);
+            })
+            linesToRemove.forEach(function (layer) {
+                drawnItems.removeLayer(layer);
+            })
+            pointsToRemove.forEach(function (layer) {
+                drawnItems.removeLayer(layer);
+            })
+
+            polygonsToRemove = [];
+            linesToRemove = [];
+            pointsToRemove = [];
+
+            handleClickLinhas(chkLines);
+            handleClickPontos(chkPoints);
+            handleClickPoligonos(chkPolygons);
         } else if (response.error) {
             $('#alert-text-error').text(response.error);
             $('#deleteFileModal').modal('hide');

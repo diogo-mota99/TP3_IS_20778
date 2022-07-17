@@ -58,7 +58,8 @@ const updatePolygons = async (request, response) => {
             makePoints.push(data.geometry.coordinates[0][j][0] + " " + data.geometry.coordinates[0][j][1]);
         }
 
-        const res = await db_config.pool.query(`UPDATE occurrences_polygon SET name = '${data.properties.name}', date = CURRENT_TIMESTAMP, geometry = ST_GeomFromText('POLYGON((${makePoints.toString()}))', 4326) WHERE id = '${data.properties.id}'`);
+        const res = await db_config.pool.query(`UPDATE occurrences_polygon SET name = '${data.properties.name}', 
+        date = CURRENT_TIMESTAMP, geometry = ST_GeomFromText('POLYGON((${makePoints.toString()}))', 4326) WHERE id = '${data.properties.id}'`);
 
         if (res && res.rowCount > 0) {
             response.json({ info: 'Polígono atualizado com sucesso!' });

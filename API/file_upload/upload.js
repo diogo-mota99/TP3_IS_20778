@@ -126,6 +126,8 @@ const upload = async (request, response) => {
 
                     }
                 });
+            } else {
+                response.json({ error: "Formato inválido!" })
             }
         }
     }
@@ -152,7 +154,9 @@ const unzip = async (filePath, response) => {
             } else {
                 fs.writeFileSync(filePath + itemExtension, Buffer.from(await item.async('arraybuffer')));
             }
-        } else if (itemExtension === '.shp' || itemExtension === '.dbf' || itemExtension === '.prj') {
+        }
+
+        if (itemExtension === '.shp' || itemExtension === '.dbf' || itemExtension === '.prj') {
             if (fs.existsSync(filePath + itemExtension)) {
                 res = 0;
             } else {
@@ -185,7 +189,7 @@ const readXML = async (request, response) => {
 
                     //TESTADO COM KMZ DE https://www.datapages.com/ E KML DE https://geocatalogo.icnf.pt/catalogo.html
                     if (results.kml.Document[0].Folder[0].Placemark[j].Point) {
-                        //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
+                        //TESTADO COM KML https://geocatalogo.icnf.pt/catalogo.html
                         if (results.kml.Document[0].Folder[0].Placemark[j].ExtendedData) {
                             let name = results.kml.Document[0].Folder[0].Placemark[j].ExtendedData[0].SchemaData[0].SimpleData[0]._;
                             let coordinates = results.kml.Document[0].Folder[0].Placemark[j].Point[0].coordinates.toString();
@@ -204,7 +208,7 @@ const readXML = async (request, response) => {
                             points.push({ "type": "point", "name": name, "latitude": latitude, "longitude": longitude, "filename": fileName + '.kml' });
 
                         }
-                        //TESTADO COM https://geocatalogo.icnf.pt/catalogo.html
+                        //TESTADO COM KML https://geocatalogo.icnf.pt/catalogo.html
                     } else if (results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry) {
                         for (let k = 0; k < results.kml.Document[0].Folder[0].Placemark[j].MultiGeometry[0].Polygon.length; k++) {
                             namePolygon.push(results.kml.Document[0].Folder[0].Placemark[j].ExtendedData[0].SchemaData[0].SimpleData[0]._);
@@ -233,7 +237,7 @@ const readXML = async (request, response) => {
                 }
             } else {
                 fs.unlinkSync(uploadPath + '.kml');
-                points.push({ "error": "Ficheiro com estrututra incorreta!" })
+                points.push({ error: "Ficheiro com estrututra incorreta!" })
             }
 
             if (coordPolygon.length > 0) {
@@ -310,7 +314,6 @@ const readSHP = async (request, response) => {
                     }
                 }
             } else if (shapeFile[i].type === 'Point') {
-                console.log(shapeFile);
                 let latitude = shapeFile[i].coordinates[0];
                 let longitude = shapeFile[i].coordinates[1];
 
@@ -339,7 +342,6 @@ const readAllFiles = async (request, response) => {
 
     let folderXML = 'file_upload/xml';
     let folderSHP = 'file_upload/shp';
-    let folderTIFF = 'file_upload/tiff';
 
     let files = [];
 
@@ -347,12 +349,9 @@ const readAllFiles = async (request, response) => {
         fs.readdirSync(folderXML).forEach(file => {
             files.push({ name: file });
         });
-    } else if (fs.existsSync(folderSHP)) {
+    }
+    if (fs.existsSync(folderSHP)) {
         fs.readdirSync(folderSHP).forEach(file => {
-            files.push({ name: file });
-        });
-    } else if (fs.existsSync(folderTIFF)) {
-        fs.readdirSync(folderTIFF).forEach(file => {
             files.push({ name: file });
         });
     }
@@ -396,13 +395,15 @@ const fileToDelete = (request, response) => {
                 fs.unlinkSync(folderXML + '/' + file);
             }
         });
-    } else if (fs.existsSync(folderSHP)) {
+    }
+    if (fs.existsSync(folderSHP)) {
         fs.readdirSync(folderSHP).forEach(file => {
             if (file === request) {
                 fs.unlinkSync(folderSHP + '/' + file);
             }
         });
-    } else if (fs.existsSync(folderTIFF)) {
+    }
+    if (fs.existsSync(folderTIFF)) {
         fs.readdirSync(folderTIFF).forEach(file => {
             if (file === request) {
                 fs.unlinkSync(folderTIFF + '/' + file);
