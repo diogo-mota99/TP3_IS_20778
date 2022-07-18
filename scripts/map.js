@@ -440,10 +440,12 @@ let layerControl = L.control.groupedLayers(baseMaps, overlayMaps).addTo(map);
 $(".leaflet-control-layers-selector").on('click', function () {
     if (map.hasLayer(aguas_balneares)) {
         map.fitBounds(aguas_balneares.getBounds());
-    } else {
-        map.setView(new L.LatLng(39.557191, -7.8536599), 7);
     }
 });
+
+function centerMap() {
+    map.setView(new L.LatLng(39.557191, -7.8536599), 7);
+}
 
 
 
