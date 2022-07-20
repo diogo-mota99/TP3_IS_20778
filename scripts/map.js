@@ -176,7 +176,7 @@ function handleJsonDFCI(data) {
     dfci.addData(data);
 }
 
-//-----------------WFC - GEOTIFF IMPORTED TO GEOSERVER-----------------//
+//-----------------WCS - GEOTIFF IMPORTED TO GEOSERVER-----------------//
 let land_cover_esri_2021 = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
     format: "image/png",
     layers: "TP3_IS:esri_2021",
