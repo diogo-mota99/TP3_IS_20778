@@ -1,3 +1,7 @@
+//-----------------BASE URLs-----------------//
+const url_geoserver = "http://localhost:8080/geoserver"
+const url_api = "http://localhost:3000"
+
 //-----------------BASE MAPS-----------------//
 var Esri_WorldStreetMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
@@ -19,67 +23,67 @@ let baseMaps = {
 
 
 //-----------------LAYERS FORNECIDAS-----------------//
-let area_ardida = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let area_ardida = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:ardida_2018',
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: "true",
 });
 
-let caop = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let caop = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:cont_aad_caop2015',
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: "true"
 });
 
-let escolas_viana = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let escolas_viana = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:escolas_viana',
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: "true"
 });
 
-let farmacias_viana = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let farmacias_viana = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:farmacias_viana',
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: "true"
 });
 
-let ifn_2015 = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let ifn_2015 = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:ifn_2015',
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: "true"
 });
 
-let pontos_agua = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let pontos_agua = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:pontos_agua',
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: "true"
 });
 
 
-let rede_viaria = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let rede_viaria = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:rede_viaria',
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: "true"
 });
 
-let zonas_caca = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let zonas_caca = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:zonas_caca',
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: "true"
 });
 
-let ecopistas = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let ecopistas = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:Ecopistas',
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: "true"
 });
 
@@ -88,14 +92,14 @@ let ecopistas = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
 let pesca_profissional = L.tileLayer.wms('https://si.icnf.pt/wms/zpp_profissional', {
     layers: "zpp_profissional",
     format: "image/png",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: true,
 })
 
 let ensino_superior = L.tileLayer.wms('http://mapas.dgterritorio.pt/wms/dgeec', {
     format: "image/png",
     layers: "Estab_Ens_Sup_Portugal",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: true,
 })
 ensino_superior.options.crs = L.CRS.EPSG4326;
@@ -103,13 +107,16 @@ ensino_superior.options.crs = L.CRS.EPSG4326;
 let vias_romanas = L.tileLayer.wms('http://epic-webgis-portugal.isa.ulisboa.pt/wms/epic?VERSION=1.1.1', {
     format: "image/png",
     layers: "Vias Romanas",
-    opacity: 0.8,
+    opacity: 0.5,
     transparent: true,
-})
+}).on('tileerror', function () {
+    $('#alert-text-error').text("Erro no servidor de destino!")
+    $('#error-alert').toast('show');
+});
 
 //-----------------WFS LAYERS-----------------//
 //-----------------Águas Balneares-----------------//
-$.ajax('http://localhost:8080/geoserver/TP3_IS/ows', {
+$.ajax(url_geoserver + '/TP3_IS/ows', {
     type: 'GET',
     data: {
         service: 'WFS',
@@ -140,7 +147,7 @@ function handleJsonAguasBalneares(data) {
 }
 
 //-----------------Freguesias prioritárias para a Defesa da Floresta Contra Incêndio (DFCI) 2022-----------------//
-$.ajax('http://localhost:8080/geoserver/TP3_IS/ows', {
+$.ajax(url_geoserver + '/TP3_IS/ows', {
     type: 'GET',
     data: {
         service: 'WFS',
@@ -177,7 +184,7 @@ function handleJsonDFCI(data) {
 }
 
 //-----------------WCS - GEOTIFF IMPORTED TO GEOSERVER-----------------//
-let land_cover_esri_2021 = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let land_cover_esri_2021 = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     format: "image/png",
     layers: "TP3_IS:esri_2021",
     opacity: 0.8,
@@ -185,21 +192,21 @@ let land_cover_esri_2021 = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_
 })
 
 //-----------------OCORRÊNCIAS GEOSERVER-----------------//
-let pontos = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let pontos = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:occurrences_point',
     format: 'image/png',
     transparent: true,
 });
 
 
-let poligonos = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let poligonos = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:occurrences_polygon',
     format: 'image/png',
     transparent: true,
 });
 
 
-let linhas = L.tileLayer.wms('http://localhost:8080/geoserver/TP3_IS/wms', {
+let linhas = L.tileLayer.wms(url_geoserver + '/TP3_IS/wms', {
     layers: 'TP3_IS:occurrences_line',
     format: 'image/png',
     transparent: true,
@@ -218,7 +225,7 @@ function handleClickLinhas(checkbox) {
         $('#loading').modal('show');
 
 
-        let getLines = $.ajax('http://localhost:3000/occurrences_line', {
+        let getLines = $.ajax(url_api + '/occurrences_line', {
             type: 'GET',
             headers: {
                 "Accept": "application/json",
@@ -280,7 +287,7 @@ function handleClickPontos(checkbox) {
     if (checkbox.checked) {
         $('#loading').modal('show');
 
-        let getPoints = $.ajax('http://localhost:3000/occurrences_point', {
+        let getPoints = $.ajax(url_api + '/occurrences_point', {
             type: 'GET',
             headers: {
                 "Accept": "application/json",
@@ -303,6 +310,7 @@ function handleClickPontos(checkbox) {
                 </div>
                 </form>`);
             }
+
         }
 
         let pointsbd = new L.GeoJSON(null, { onEachFeature: onEachFeaturePointsBD });
@@ -341,7 +349,7 @@ function handleClickPoligonos(checkbox) {
 
     if (checkbox.checked) {
         $('#loading').modal('show');
-        let getPolygons = $.ajax('http://localhost:3000/occurrences_polygon', {
+        let getPolygons = $.ajax(url_api + '/occurrences_polygon', {
             type: 'GET',
             headers: {
                 "Accept": "application/json",
@@ -544,6 +552,37 @@ map.on('draw:created', (e) => {
     map.addControl(drawControlEditOnly);
 });
 
+let saveEvents = []
+
+map.on("draw:editstart", (e) => {
+    let drawToArray = Object.entries(drawnItems._layers);
+
+    drawToArray.forEach(element => {
+        saveEvents.push(element[1]._events.click);
+        delete element[1]._events.click;
+    });
+
+    chkLines.disabled = true;
+    chkPoints.disabled = true;
+    chkPolygons.disabled = true;
+})
+
+map.on("draw:editstop", () => {
+    let drawToArray = Object.entries(drawnItems._layers);
+
+    drawToArray.forEach(element => {
+        saveEvents.forEach(event => {
+            element[1]._events.click = event;
+        });
+    });
+
+    saveEvents = []
+    chkLines.disabled = false;
+    chkPoints.disabled = false;
+    chkPolygons.disabled = false;
+
+})
+
 //-----------------Checkbox Linhas/Pontos/Poligonos-----------------//
 let chkLines = document.getElementById("linhas");
 let chkPoints = document.getElementById("pontos");
@@ -556,7 +595,7 @@ function addLine() {
 
     let nome = document.getElementById("name").value;
     props.name = nome;
-    $.ajax('http://localhost:3000/postLine', {
+    $.ajax(url_api + '/postLine', {
         type: 'POST',
         headers: {
             "Accept": "application/json",
@@ -601,7 +640,7 @@ function updateLine(id) {
 
 
 
-    $.ajax('http://localhost:3000/updateLine', {
+    $.ajax(url_api + '/updateLine', {
         type: 'POST',
         headers: {
             "Accept": "application/json",
@@ -639,7 +678,7 @@ function deleteLine(id) {
 
     let layer = linesToRemove.find(element => element.feature.properties.id == id);
 
-    $.ajax('http://localhost:3000/deleteLine', {
+    $.ajax(url_api + '/deleteLine', {
         type: 'POST',
         headers: {
             "Accept": "application/json",
@@ -680,7 +719,7 @@ function addPoint() {
 
     let nome = document.getElementById("name").value;
     props.name = nome;
-    $.ajax('http://localhost:3000/postPoint', {
+    $.ajax(url_api + '/postPoint', {
         type: 'POST',
         headers: {
             "Accept": "application/json",
@@ -725,7 +764,7 @@ function updatePoint(id) {
 
 
 
-    $.ajax('http://localhost:3000/updatePoint', {
+    $.ajax(url_api + '/updatePoint', {
         type: 'POST',
         headers: {
             "Accept": "application/json",
@@ -762,7 +801,7 @@ function deletePoint(id) {
 
     let layer = pointsToRemove.find(element => element.feature.properties.id == id);
 
-    $.ajax('http://localhost:3000/deletePoint', {
+    $.ajax(url_api + '/deletePoint', {
         type: 'POST',
         headers: {
             "Accept": "application/json",
@@ -800,7 +839,7 @@ function addPolygon() {
 
     let nome = document.getElementById("name").value;
     props.name = nome;
-    $.ajax('http://localhost:3000/postPolygon', {
+    $.ajax(url_api + '/postPolygon', {
         type: 'POST',
         headers: {
             "Accept": "application/json",
@@ -846,7 +885,7 @@ function updatePolygon(id) {
 
 
 
-    $.ajax('http://localhost:3000/updatePolygon', {
+    $.ajax(url_api + '/updatePolygon', {
         type: 'POST',
         headers: {
             "Accept": "application/json",
@@ -883,7 +922,7 @@ function deletePolygon(id) {
 
     let layer = polygonsToRemove.find(element => element.feature.properties.id == id);
 
-    $.ajax('http://localhost:3000/deletePolygon', {
+    $.ajax(url_api + '/deletePolygon', {
         type: 'POST',
         headers: {
             "Accept": "application/json",
@@ -980,7 +1019,7 @@ $("#fileForm").submit(function (event) {
         formData.append("file", inputFile.files[0]);
         formData.append("selectType", selectType.value)
 
-        $.ajax('http://localhost:3000/upload', {
+        $.ajax(url_api + '/upload', {
             "method": "POST",
             "timeout": 0,
             "processData": false,
@@ -1021,7 +1060,7 @@ $("#fileForm").submit(function (event) {
 $('#editFileModal').on('show.bs.modal', function () {
     $('#loading').modal('show');
 
-    $.ajax('http://localhost:3000/files', {
+    $.ajax(url_api + '/files', {
         type: 'GET',
         headers: {
             "Accept": "application/json",
@@ -1052,7 +1091,7 @@ function cancelDeleteFile() {
 function deleteFile() {
     $('#loading').modal('show');
 
-    $.ajax('http://localhost:3000/deleteFile', {
+    $.ajax(url_api + '/deleteFile', {
         type: 'POST',
         headers: {
             "Accept": "application/json",

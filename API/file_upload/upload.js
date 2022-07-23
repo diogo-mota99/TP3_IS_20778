@@ -301,13 +301,18 @@ const readSHP = async (request, response) => {
     }
 
     if (shapeFile !== undefined) {
+
         for (let i = 0; i < shapeFile.length; i++) {
 
             shapeFile[i].attributes = DBF[i];
 
             if (shapeFile[i].type === 'Polygon') {
                 for (let j = 0; j < shapeFile[i].coordinates.length; j++) {
-                    polygonsNames.push(shapeFile[i].attributes.nome_ap);
+                    if (shapeFile[i].attributes.nome_ap !== undefined) {
+                        polygonsNames.push(shapeFile[i].attributes.nome_ap);
+                    } else if (shapeFile[i].attributes.name !== undefined) {
+                        polygonsNames.push(shapeFile[i].attributes.name)
+                    }
                     spliceNumber.push(shapeFile[i].coordinates[j].length);
                     for (let k = 0; k < shapeFile[i].coordinates[j].length; k++) {
                         allCoordsPolygon.push(shapeFile[i].coordinates[j][k][0] + ' ' + shapeFile[i].coordinates[j][k][1])
